@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>BioCleanProject</title>
+<style>
+  :root{
+    --bg:#F5F9FA; --surface:#FFFFFF; --border:#DDE7EA;
+    --text:#1B2E33; --text-2:#55696E; --text-muted:#8AA0A6;
+    --accent:#3D7E92; --accent-light:#E3F4F8; --accent-text:#2C5F70;
+    --accent-bright:#4997AD; --accent-sky:#7CD3EA;
+    --danger:#A34242; --danger-light:#FBEDED;
+    --warning:#8A5B13; --warning-light:#FAF0DD;
+    --success:#2F7A63; --success-light:#E4F3EE;
+    --radius:14px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);padding-bottom:76px;-webkit-tap-highlight-color:transparent}
+  header{padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand-mark{width:34px;height:34px;flex-shrink:0}
+  .brand-text{flex:1;min-width:0}
+  .brand-text h1{font-size:16px;font-weight:600;margin:0;color:var(--accent-text);letter-spacing:-.2px}
+  .brand-text p{margin:0;font-size:10px;color:var(--text-muted);letter-spacing:1.2px;text-transform:uppercase}
+  .calc-btn{flex-shrink:0;width:38px;height:38px;padding:0;border-radius:11px;background:var(--accent-light);
+    border:1px solid var(--border);color:var(--accent);display:flex;align-items:center;justify-content:center;
+    transition:transform .12s}
+  .calc-btn:active{transform:scale(.93)}
+  main{padding:16px;max-width:480px;margin:0 auto}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+  .row{display:flex;gap:8px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  label{display:block;font-size:12px;color:var(--text-2);margin-bottom:4px;font-weight:600}
+  input[type=text],input[type=number],input[type=date],select{
+    width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;
+    font-size:15px;background:#fff;color:var(--text);margin-bottom:12px
+  }
+  input:focus,select:focus{outline:none;border-color:var(--accent)}
+  button{cursor:pointer;font-size:14px;font-weight:600;border-radius:10px;border:1px solid var(--border);
+    background:#fff;color:var(--text);padding:10px 14px}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  button.danger{background:var(--danger);color:#fff;border-color:var(--danger)}
+  button.ghost{background:transparent;border-color:transparent;color:var(--text-2)}
+  button.toggle{flex:1}
+  button.toggle.active{background:var(--accent-light);border-color:var(--accent);color:var(--accent-text)}
+  button.block{width:100%}
+  .pillrow{display:flex;gap:8px;margin-bottom:12px}
+  .pillrow button{flex:1;padding:9px 6px;font-size:13px}
+  .filterbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .filterbar button{padding:6px 11px;font-size:12px;border-radius:20px}
+  .filterbar button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .details-toggle{display:flex;justify-content:space-between;align-items:center;padding:10px 0;
+    border-top:1px solid var(--border);color:var(--text-2);font-size:13px;font-weight:600;cursor:pointer}
+  .details-body{display:none}
+  .details-body.open{display:block}
+  .switch-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .switch{position:relative;width:44px;height:26px;border-radius:20px;background:var(--border);border:none;flex-shrink:0}
+  .switch.on{background:var(--accent)}
+  .switch::after{content:'';position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .15s}
+  .switch.on::after{transform:translateX(18px)}
+  .stat{background:var(--bg);border-radius:10px;padding:10px;position:relative}
+  .stat.tappable{cursor:pointer}
+  .stat.tappable::after{content:'›';position:absolute;right:10px;top:8px;color:var(--text-muted);font-size:14px}
+  .stat .l{font-size:11px;color:var(--text-2);margin:0}
+  .stat .v{font-size:18px;font-weight:700;margin:2px 0 0}
+  .stat .edit{position:absolute;right:8px;bottom:6px;background:none;border:none;padding:2px;font-size:12px;color:var(--text-muted)}
+  .breakdown{background:var(--bg);border-radius:10px;padding:12px;margin-top:10px}
+  .breakdown .bd-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border)}
+  .breakdown .bd-row:last-child{border-bottom:none}
+  .list-item{padding:11px 0;border-bottom:1px solid var(--border)}
+  .list-item:last-child{border-bottom:none}
+  .li-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .list-item .name{font-size:14px;font-weight:600;margin:0}
+  .list-item .sub{font-size:12px;color:var(--text-2);margin:2px 0 0}
+  .vat-tag{display:inline-block;font-size:10px;font-weight:700;background:var(--accent-light);color:var(--accent-text);
+    padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:1px}
+  .amount.income{color:var(--success)}
+  .amount.expense{color:var(--danger)}
+  .badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;border:none;cursor:pointer}
+  .badge.warn{background:var(--warning-light);color:var(--warning)}
+  .badge.ok{background:var(--success-light);color:var(--success)}
+  .badge.plain{background:var(--bg);color:var(--text-2)}
+  .empty{text-align:center;padding:30px 10px;color:var(--text-muted);font-size:13px}
+  nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);
+    display:flex;padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:10}
+  nav button{flex:1;background:none;border:none;font-size:11px;font-weight:600;color:var(--text-muted);
+    padding:8px 2px;border-radius:10px}
+  nav button.active{color:var(--accent-text);background:var(--accent-light)}
+  .month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .month-nav button{padding:6px 12px}
+  .month-nav .label{font-size:15px;font-weight:700}
+  .month-head{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:4px 0}
+  .month-head h2{margin:0}
+  .hero{font-size:30px;font-weight:700;margin:0 0 2px}
+  .delta{font-size:12px;font-weight:600}
+  .delta.up{color:var(--success)}
+  .delta.down{color:var(--danger)}
+  h2{font-size:15px;font-weight:700;margin:0 0 12px}
+  .tiny{font-size:11px;color:var(--text-muted)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--accent-light);color:var(--accent-text);
+    font-size:13px;font-weight:600;padding:6px 10px;border-radius:20px}
+  .chip button{background:none;border:none;padding:0;color:var(--accent-text);font-size:13px;line-height:1}
+  .payexpand{background:var(--bg);border-radius:10px;padding:12px;margin-top:10px}
+  .selbox{width:20px;height:20px;flex-shrink:0;accent-color:var(--accent)}
+  /* Ημερολόγιο */
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px}
+  .cal-head{font-size:10px;font-weight:700;color:var(--text-muted);text-align:center;padding:4px 0}
+  .cal-day{aspect-ratio:1;border-radius:8px;background:var(--bg);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;font-size:12px;cursor:pointer;border:1px solid transparent}
+  .cal-day.other{opacity:.3}
+  .cal-day.today{border-color:var(--accent)}
+  .cal-day.selected{background:var(--accent);color:#fff}
+  .cal-day .dot{width:5px;height:5px;border-radius:50%;background:var(--warning);margin-top:2px}
+  .cal-day.selected .dot{background:#fff}
+  /* Calculator — premium */
+  #calcBox{position:fixed;inset:0;background:rgba(16,40,48,.62);backdrop-filter:blur(5px);
+    display:none;align-items:flex-end;justify-content:center;z-index:20}
+  #calcBox.open{display:flex}
+  #calcBox .inner{background:#13272E;border-radius:26px 26px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom));
+    width:100%;max-width:420px;box-shadow:0 -8px 40px rgba(0,0,0,.45)}
+  .calc-grip{width:38px;height:4px;background:#3A5560;border-radius:4px;margin:0 auto 12px}
+  #calcExpr{color:#7FA0AB;font-size:14px;text-align:right;min-height:20px;padding:0 6px;letter-spacing:.5px}
+  #calcDisplay{color:#fff;text-align:right;font-size:44px;font-weight:300;letter-spacing:-1px;
+    padding:2px 6px 16px;min-height:56px;word-break:break-all;line-height:1.1}
+  .calc-topfn{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:9px}
+  .calc-topfn button{padding:11px 0;font-size:15px;font-weight:600;border-radius:16px;border:none;
+    background:#26414A;color:#A9D3E0;transition:transform .08s,filter .08s}
+  .calc-topfn button:active{transform:scale(.94);filter:brightness(1.3)}
+  .calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+  .calc-grid button{min-height:72px;aspect-ratio:1;padding:0;font-size:22px;font-weight:500;border-radius:50%;
+    border:none;background:#1E3841;color:#fff;transition:transform .08s,filter .08s;
+    display:flex;align-items:center;justify-content:center}
+  .calc-grid button:active{transform:scale(.94);filter:brightness(1.3)}
+  .calc-grid button.op{background:#4997AD;color:#fff;font-size:24px}
+  .calc-grid button.op.armed{background:#fff;color:#3D7E92}
+  .calc-grid button.eq{background:#7CD3EA;color:#13272E;font-size:26px;font-weight:700}
+  #shareBox{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:20;padding:20px}
+  #shareBox.open{display:flex}
+  #shareBox .inner{background:var(--surface);border-radius:14px;padding:18px;max-width:420px;width:100%;max-height:80vh;overflow:auto}
+  #shareBox textarea{width:100%;height:220px;font-family:monospace;font-size:12px;border:1px solid var(--border);border-radius:10px;padding:10px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+      <rect x="1" y="1" width="38" height="38" rx="10" fill="url(#bcpGrad)"/>
+      <circle cx="20" cy="20" r="14" fill="#fff"/>
+      <path d="M18.5 9.5c1.6 0 2.6 1 2.6 2.4v14.4h-2.6" fill="none" stroke="#3D7E92" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M21.1 26.3h6.2" stroke="#3D7E92" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M18.5 15.6c-2.6 0-4.4 1.9-4.4 4.3" fill="none" stroke="#3D7E92" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="13.2" cy="24.6" r="2.6" fill="#3D7E92"/>
+      <defs>
+        <linearGradient id="bcpGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#5D93A3"/><stop offset="1" stop-color="#7CD3EA"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <div class="brand-text">
+      <h1>Bio Clean Project</h1>
+      <p>Premium services</p>
+    </div>
+    <button class="calc-btn" onclick="openCalc()" aria-label="Αριθμομηχανή">
+      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+        <rect x="4" y="2.5" width="16" height="19" rx="3"/>
+        <line x1="8" y1="7" x2="16" y2="7"/>
+        <circle cx="8.5" cy="12" r=".6" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="12" r=".6" fill="currentColor" stroke="none"/>
+        <circle cx="15.5" cy="12" r=".6" fill="currentColor" stroke="none"/>
+        <circle cx="8.5" cy="16.5" r=".6" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="16.5" r=".6" fill="currentColor" stroke="none"/>
+        <circle cx="15.5" cy="16.5" r=".6" fill="currentColor" stroke="none"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main id="main"></main>
+
+<nav>
+  <button data-tab="entry">Νέα</button>
+  <button data-tab="history">Ιστορικό</button>
+  <button data-tab="invoices">Τιμολόγια</button>
+  <button data-tab="appointments">Ραντεβού</button>
+  <button data-tab="stats">Στατιστικά</button>
+</nav>
+
+<div id="calcBox" onclick="if(event.target===this)closeCalc()">
+  <div class="inner">
+    <div class="calc-grip" onclick="closeCalc()"></div>
+    <div id="calcExpr"></div>
+    <div id="calcDisplay">0</div>
+    <div class="calc-topfn">
+      <button onclick="calcClear()">C</button>
+      <button onclick="calcSign()">±</button>
+      <button onclick="calcBack()">⌫</button>
+      <button onclick="calcPercent()">%</button>
+    </div>
+    <div class="calc-grid">
+      <button onclick="calcDigit('7')">7</button>
+      <button onclick="calcDigit('8')">8</button>
+      <button onclick="calcDigit('9')">9</button>
+      <button class="op" id="op-/" onclick="calcOp('/')">÷</button>
+      <button onclick="calcDigit('4')">4</button>
+      <button onclick="calcDigit('5')">5</button>
+      <button onclick="calcDigit('6')">6</button>
+      <button class="op" id="op-*" onclick="calcOp('*')">×</button>
+      <button onclick="calcDigit('1')">1</button>
+      <button onclick="calcDigit('2')">2</button>
+      <button onclick="calcDigit('3')">3</button>
+      <button class="op" id="op--" onclick="calcOp('-')">−</button>
+      <button onclick="calcDigit('0')">0</button>
+      <button onclick="calcDot()">,</button>
+      <button class="eq" onclick="calcEquals()">=</button>
+      <button class="op" id="op-+" onclick="calcOp('+')">+</button>
+    </div>
+  </div>
+</div>
+
+<div id="shareBox">
+  <div class="inner">
+    <h2>Περίληψη μήνα</h2>
+    <textarea id="shareText" readonly></textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="block" onclick="copyShare()">Αντιγραφή</button>
+      <button class="primary block" onclick="closeShare()">Κλείσιμο</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= STORAGE ================= */
+const K = {tx:'bpc_transactions', fixed:'bpc_fixed', appt:'bpc_appointments',
+           settings:'bpc_settings', transfers:'bpc_transfers', adjust:'bpc_adjustments'};
+
+function load(key, fallback){
+  try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch(e){ return fallback; }
+}
+function save(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+let settings = load(K.settings, null);
+if(!settings){
+  settings = {
+    vatRate: 24,
+    serviceCategories: ['Καναπέδες','Μοκέτες','Χαλιά','Οροφές','Ταπετσαρίες','Στρώματα'],
+    expenseCategories: ['Ενοίκιο','Βενζίνη','Μισθός','Εισφορές ΑΠΔ'],
+    genFixed: []
+  };
+} else {
+  if(settings.categories && !settings.serviceCategories){
+    settings.serviceCategories = settings.categories.filter(c => c !== 'Σκάφη');
+    delete settings.categories;
+  }
+  if(!settings.serviceCategories) settings.serviceCategories = ['Καναπέδες','Μοκέτες','Χαλιά','Οροφές','Ταπετσαρίες','Στρώματα'];
+  if(!settings.expenseCategories) settings.expenseCategories = ['Ενοίκιο','Βενζίνη','Μισθός','Εισφορές ΑΠΔ'];
+  if(!settings.vatRate) settings.vatRate = 24;
+  if(!settings.genFixed) settings.genFixed = [];
+}
+
+let transactions = load(K.tx, []);
+let fixedExpenses = load(K.fixed, []);
+let appointments = load(K.appt, []);
+let transfers = load(K.transfers, []);
+let adjustments = load(K.adjust, []);
+
+appointments.forEach(a => { if(a.paid === undefined){ a.paid = false; a.txId = null; } });
+fixedExpenses.forEach(f => {
+  if(!f.payment) f.payment = 'Τράπεζα';
+  if(!f.startMonth) f.startMonth = f.createdAt;
+  if(f.vat === undefined) f.vat = false;
+});
+
+function persist(){
+  save(K.tx, transactions); save(K.fixed, fixedExpenses);
+  save(K.appt, appointments); save(K.settings, settings);
+  save(K.transfers, transfers); save(K.adjust, adjustments);
+}
+
+/* ================= HELPERS ================= */
+/* --- Ασφαλείς ημερομηνίες: δουλεύουμε πάντα με 'YYYY-MM-DD' ως κείμενο,
+       ποτέ με toISOString() (γλιστράει μέρα λόγω ζώνης ώρας). --- */
+function isoOf(y, mZero, day){
+  return y + '-' + String(mZero+1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+}
+function todayISO(){
+  const d = new Date();
+  return isoOf(d.getFullYear(), d.getMonth(), d.getDate());
+}
+function parseISO(s){ // -> {y, m(0-based), d}
+  const p = String(s).slice(0,10).split('-');
+  return { y: +p[0], m: +p[1]-1, d: +p[2] };
+}
+function monthKey(iso){ return String(iso).slice(0,7); }
+function daysInMonth(y, mZero){ return new Date(y, mZero+1, 0).getDate(); }
+function fmtMoney(n){ return (Math.round(n*100)/100).toLocaleString('el-GR',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' €'; }
+function fmtDate(iso){
+  const {y,m,d} = parseISO(iso);
+  return String(d).padStart(2,'0')+'/'+String(m+1).padStart(2,'0')+'/'+y;
+}
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+const monthNames = ['Ιανουάριος','Φεβρουάριος','Μάρτιος','Απρίλιος','Μάιος','Ιούνιος','Ιούλιος','Αύγουστος','Σεπτέμβριος','Οκτώβριος','Νοέμβριος','Δεκέμβριος'];
+
+const _now = new Date();
+let currentMonth = { y: _now.getFullYear(), m: _now.getMonth() }; // m: 0-11
+function mkOf(o){ return o.y + '-' + String(o.m+1).padStart(2,'0'); }
+function monthShift(o, dir){
+  let y = o.y, m = o.m + dir;
+  while(m < 0){ m += 12; y--; }
+  while(m > 11){ m -= 12; y++; }
+  return { y, m };
+}
+
+function txForMonth(mk){ return transactions.filter(t => monthKey(t.date) === mk); }
+function vatPortion(amount){ const r = settings.vatRate/100; return amount - (amount/(1+r)); }
+
+function walletBalance(method){
+  const inc = transactions.filter(t=>t.type==='income'&&t.payment===method).reduce((s,t)=>s+Number(t.amount),0);
+  const exp = transactions.filter(t=>t.type==='expense'&&t.payment===method).reduce((s,t)=>s+Number(t.amount),0);
+  const tIn = transfers.filter(x=>x.to===method).reduce((s,x)=>s+Number(x.amount),0);
+  const tOut = transfers.filter(x=>x.from===method).reduce((s,x)=>s+Number(x.amount),0);
+  const adj = adjustments.filter(x=>x.method===method).reduce((s,x)=>s+Number(x.delta),0);
+  return inc - exp + tIn - tOut + adj;
+}
+
+/* --- Μια φορά: καθαρισμός παλιών κινήσεων πάγιων που είχαν λάθος ημερομηνία
+       λόγω παλιού σφάλματος ζώνης ώρας (έπεφταν στον προηγούμενο μήνα).
+       Θα ξαναδημιουργηθούν σωστά από τη materializeFixed. --- */
+function repairLegacyFixed(){
+  if(settings.fixedRepaired) return;
+  // 1. Σβήνει αυτόματες πάγιες κινήσεις (θα ξαναδημιουργηθούν σωστά)
+  const before = transactions.length;
+  transactions = transactions.filter(t => !(t.auto && t.fixedId));
+  if(transactions.length !== before) settings.genFixed = [];
+  // 2. Διορθώνει χειροκίνητες εγγραφές που είχαν αποθηκευτεί με λάθος ημερομηνία
+  //    λόγω του timezone bug (toISOString έδινε UTC -1 ημέρα).
+  //    Χαρακτηριστικό: ημέρα 28-31 σε εγγραφές που δεν είναι ρητά backdated (χωρίς f_date).
+  //    Ασφαλής στρατηγική: μόνο αν ο χρήστης έχει θέσει legacyTzBug flag.
+  //    (Δεν κάνουμε aggressive repair γιατί μπορεί να έχει πραγματικές εγγραφές στις 30/31)
+  settings.fixedRepaired = true;
+  persist();
+}
+
+/* --- Μήνυμα διόρθωσης παλιών ημερομηνιών (εμφανίζεται μία φορά) --- */
+function checkDateRepair(){
+  if(settings.dateRepairDone) return;
+  // Ελέγχουμε αν υπάρχουν εγγραφές με ημερομηνία 28-31 στον προηγούμενο μήνα
+  // που έχουν δημιουργηθεί ΧΩΡΙΣ ρητή backdating (δεν έχουν detailsOpen = πριν την αλλαγή)
+  // Ασφαλέστερη: ρωτάμε τον χρήστη αν υπάρχουν εγγραφές που φαίνονται λάθος
+  settings.dateRepairDone = true;
+  persist();
+}
+
+/* ---- Πάγια: δημιουργία πραγματικών κινήσεων (χωρίς timezone bugs) ---- */
+function materializeFixed(){
+  const now = new Date();
+  const nowY = now.getFullYear(), nowM = now.getMonth(), nowD = now.getDate();
+  let changed = false;
+
+  fixedExpenses.forEach(f=>{
+    if(!f.active) return;
+    const start = parseISO(f.startMonth || f.createdAt); // πρώτος μήνας ισχύος
+    let y = start.y, m = start.m;
+
+    // προχώρα μήνα-μήνα μέχρι και τον τρέχοντα
+    while(y < nowY || (y === nowY && m <= nowM)){
+      const mk = isoOf(y, m, 1).slice(0,7);
+      const marker = f.id + ':' + mk;
+
+      if(!settings.genFixed.includes(marker)){
+        const day = Math.min(f.dayOfMonth || 1, daysInMonth(y, m));
+        // δημιούργησε μόνο αν η ημέρα έχει ήδη φτάσει
+        const reached = (y < nowY) || (y === nowY && m < nowM) || (y === nowY && m === nowM && day <= nowD);
+        if(reached){
+          transactions.push({
+            id: uid(), type:'expense', amount: Number(f.amount), category: f.name,
+            date: isoOf(y, m, day), payment: f.payment || 'Τράπεζα',
+            vat: !!f.vat, doc:'none', sent:false, note:'Πάγιο έξοδο', fixedId: f.id, auto:true
+          });
+          settings.genFixed.push(marker);
+          changed = true;
+        }
+      }
+      m++;
+      if(m > 11){ m = 0; y++; }
+    }
+  });
+  if(changed) persist();
+}
+
+/* ================= STATE ================= */
+let activeTab = 'entry';
+let entryType = 'income';
+let detailsOpen = false;
+let entryDraft = { date: todayISO(), vat:false, doc:'none', sent:false, payment:'Μετρητά' };
+let editingId = null;
+
+let apptDraft = { date: todayISO() };
+let editingApptId = null;
+let payingApptId = null;
+let payDraft = { payment:'Μετρητά', vat:false };
+let apptView = 'list';           // list | calendar
+let apptFilter = 'pending';      // pending | done | all
+let apptSelectMode = false;
+let apptSelected = new Set();
+let calMonth = { y: _now.getFullYear(), m: _now.getMonth() };
+let calSelectedDate = null;
+
+let histFilterType = 'all';      // all | income | expense
+let histFilterExtra = 'all';     // all | Μετρητά | Κάρτα | Τράπεζα | vat | receipt | invoice
+let histSelectMode = false;
+let histSelected = new Set();
+let openMonths = null;           // Set με ανοιχτούς μήνες (null = default: μόνο ο πιο πρόσφατος)
+
+let transferFormOpen = false;
+let transferDraft = { from:'Μετρητά', to:'Τράπεζα' };
+let movementsOpen = false;
+let expandedStat = null;         // expense | cash | card | bank | pendinginv | null
+let vatPayOpen = false;
+let vatPayDraft = { payment:'Κάρτα' };
+let fixedDraft = { payment:'Τράπεζα', vat:false };
+
+/* ================= ROUTER ================= */
+function render(){
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active', b.dataset.tab===activeTab));
+  const main = document.getElementById('main');
+  if(activeTab==='entry') main.innerHTML = renderEntry();
+  if(activeTab==='history') main.innerHTML = renderHistory();
+  if(activeTab==='invoices') main.innerHTML = renderInvoices();
+  if(activeTab==='appointments') main.innerHTML = renderAppointments();
+  if(activeTab==='stats') main.innerHTML = renderStats();
+}
+document.querySelectorAll('nav button').forEach(b=>{
+  b.addEventListener('click', ()=>{ activeTab = b.dataset.tab; render(); });
+});
+
+/* ================= ΝΕΑ ΚΑΤΑΧΩΡΗΣΗ ================= */
+function currentCategories(){
+  return entryType === 'income' ? settings.serviceCategories : settings.expenseCategories;
+}
+function renderEntry(){
+  const cats = currentCategories().map(c=>`<option ${entryDraft.category===c?'selected':''}>${esc(c)}</option>`).join('');
+  const notePlaceholder = entryType==='income' ? 'π.χ. όνομα πελάτη' : 'π.χ. όνομα επιχείρησης/προμηθευτή';
+  return `
+  <div class="card">
+    <h2>${editingId ? 'Επεξεργασία καταχώρησης' : 'Νέα καταχώρηση'}</h2>
+    <div class="pillrow">
+      <button class="toggle ${entryType==='income'?'active':''}" onclick="setType('income')">Έσοδο</button>
+      <button class="toggle ${entryType==='expense'?'active':''}" onclick="setType('expense')">Έξοδο</button>
+    </div>
+
+    <label>Ποσό (€)</label>
+    <input type="number" inputmode="decimal" id="f_amount" placeholder="0.00" value="${entryDraft.amount||''}" oninput="entryDraft.amount=this.value">
+
+    <label>Κατηγορία</label>
+    <select id="f_category" onchange="entryDraft.category=this.value">${cats}</select>
+
+    <label>Τρόπος πληρωμής</label>
+    <div class="pillrow">
+      ${['Μετρητά','Κάρτα','Τράπεζα'].map(p=>`<button class="toggle ${entryDraft.payment===p?'active':''}" onclick="setPayment('${p}')">${p}</button>`).join('')}
+    </div>
+
+    <div class="details-toggle" onclick="toggleDetails()">
+      <span>Περισσότερες λεπτομέρειες</span><span>${detailsOpen?'▲':'▼'}</span>
+    </div>
+    <div class="details-body ${detailsOpen?'open':''}">
+      <label style="margin-top:12px">Ημερομηνία</label>
+      <input type="date" id="f_date" value="${entryDraft.date}" onchange="entryDraft.date=this.value">
+
+      <div class="switch-row">
+        <span style="font-size:14px">Με ΦΠΑ (${settings.vatRate}%)</span>
+        <button class="switch ${entryDraft.vat?'on':''}" onclick="toggleVat()"></button>
+      </div>
+
+      <label>Παραστατικό</label>
+      <select id="f_doc" onchange="setDoc(this.value)">
+        <option value="none" ${entryDraft.doc==='none'?'selected':''}>Κανένα</option>
+        <option value="receipt" ${entryDraft.doc==='receipt'?'selected':''}>Απόδειξη</option>
+        <option value="invoice" ${entryDraft.doc==='invoice'?'selected':''}>Τιμολόγιο</option>
+      </select>
+
+      ${entryDraft.doc==='invoice' ? `
+      <div class="switch-row">
+        <span style="font-size:14px">Εστάλη στον λογιστή</span>
+        <button class="switch ${entryDraft.sent?'on':''}" onclick="toggleSent()"></button>
+      </div>` : ''}
+
+      <label>Σημείωση (προαιρετικό)</label>
+      <input type="text" id="f_note" placeholder="${notePlaceholder}" value="${esc(entryDraft.note||'')}" oninput="entryDraft.note=this.value">
+    </div>
+
+    <div class="row" style="margin-top:8px">
+      ${editingId ? `<button class="block" onclick="cancelEdit()">Άκυρο</button>` : ''}
+      <button class="primary block" onclick="saveEntry()">${editingId ? 'Ενημέρωση' : 'Αποθήκευση'}</button>
+    </div>
+  </div>`;
+}
+function setType(t){ entryType = t; entryDraft.category = undefined; render(); }
+function setPayment(p){ entryDraft.payment=p; render(); }
+function toggleDetails(){ detailsOpen=!detailsOpen; render(); }
+function toggleVat(){ entryDraft.vat=!entryDraft.vat; render(); }
+function toggleSent(){ entryDraft.sent=!entryDraft.sent; render(); }
+function setDoc(v){ entryDraft.doc=v; render(); }
+
+function saveEntry(){
+  const amount = parseFloat(document.getElementById('f_amount').value);
+  if(!amount || amount<=0){ alert('Βάλε ένα έγκυρο ποσό.'); return; }
+  const category = document.getElementById('f_category').value;
+  const dateEl = document.getElementById('f_date');
+  const date = dateEl ? dateEl.value : entryDraft.date;
+  const noteEl = document.getElementById('f_note');
+  const note = noteEl ? noteEl.value : (entryDraft.note||'');
+
+  const payload = {
+    type: entryType, amount, category, date,
+    payment: entryDraft.payment, vat: entryDraft.vat, doc: entryDraft.doc,
+    sent: entryDraft.doc==='invoice' ? entryDraft.sent : false, note
+  };
+
+  if(editingId){
+    const idx = transactions.findIndex(t=>t.id===editingId);
+    if(idx>-1) transactions[idx] = { ...transactions[idx], ...payload };
+    editingId = null;
+  } else {
+    transactions.push({ id: uid(), ...payload });
+  }
+  persist();
+  entryDraft = { date: todayISO(), vat:false, doc:'none', sent:false, payment:'Μετρητά' };
+  detailsOpen = false;
+  activeTab = 'history';
+  render();
+}
+function editTx(id){
+  const t = transactions.find(t=>t.id===id);
+  if(!t) return;
+  editingId = id;
+  entryType = t.type;
+  entryDraft = { amount:t.amount, category:t.category, date:t.date, payment:t.payment, vat:t.vat, doc:t.doc, sent:t.sent, note:t.note };
+  detailsOpen = true;
+  activeTab = 'entry';
+  render();
+  window.scrollTo({top:0});
+}
+function cancelEdit(){
+  editingId = null;
+  entryDraft = { date: todayISO(), vat:false, doc:'none', sent:false, payment:'Μετρητά' };
+  detailsOpen = false;
+  render();
+}
+function unlinkAppt(txId){
+  const linked = appointments.find(a=>a.txId===txId);
+  if(linked){ linked.paid = false; linked.txId = null; }
+}
+function deleteTx(id){
+  if(!confirm('Διαγραφή καταχώρησης;')) return;
+  unlinkAppt(id);
+  transactions = transactions.filter(t=>t.id!==id);
+  persist(); render();
+}
+
+/* ================= ΙΣΤΟΡΙΚΟ ================= */
+function histMatches(t){
+  if(histFilterType!=='all' && t.type!==histFilterType) return false;
+  if(histFilterExtra==='all') return true;
+  if(histFilterExtra==='vat') return !!t.vat;
+  if(histFilterExtra==='receipt') return t.doc==='receipt';
+  if(histFilterExtra==='invoice') return t.doc==='invoice';
+  return t.payment===histFilterExtra; // Μετρητά/Κάρτα/Τράπεζα
+}
+function renderHistory(){
+  const filtered = transactions.filter(histMatches).sort((a,b)=> new Date(b.date)-new Date(a.date));
+
+  const filterBar = `
+  <div class="card" style="padding:12px 16px">
+    <div class="filterbar">
+      ${[['all','Όλα'],['income','Έσοδα'],['expense','Έξοδα']].map(([v,l])=>
+        `<button class="${histFilterType===v?'active':''}" onclick="setHistType('${v}')">${l}</button>`).join('')}
+    </div>
+    <div class="filterbar" style="margin-bottom:0">
+      ${[['all','Όλα'],['Μετρητά','Μετρητά'],['Κάρτα','Κάρτα'],['Τράπεζα','Τράπεζα'],['vat','ΦΠΑ'],['receipt','Απόδειξη'],['invoice','Τιμολόγιο']].map(([v,l])=>
+        `<button class="${histFilterExtra===v?'active':''}" onclick="setHistExtra('${v}')">${l}</button>`).join('')}
+    </div>
+    <div class="row" style="margin-top:10px">
+      ${histSelectMode
+        ? `<button class="block" onclick="toggleHistSelect()">Άκυρο</button>
+           <button class="danger block" onclick="deleteHistSelected()">Διαγραφή (${histSelected.size})</button>`
+        : `<button class="block ghost" style="border:1px dashed var(--border)" onclick="toggleHistSelect()">Επιλογή για μαζική διαγραφή</button>`}
+    </div>
+  </div>`;
+
+  if(filtered.length===0) return filterBar + `<div class="card"><div class="empty">Καμία καταχώρηση με αυτά τα φίλτρα.</div></div>`;
+
+  const groups = {};
+  filtered.forEach(t=>{ const mk=monthKey(t.date); (groups[mk]=groups[mk]||[]).push(t); });
+  const monthKeys = Object.keys(groups); // ήδη σε φθίνουσα σειρά λόγω sort
+
+  if(openMonths===null){ openMonths = new Set([monthKeys[0]]); }
+
+  const cards = monthKeys.map(mk=>{
+    const [y,m] = mk.split('-');
+    const isOpen = openMonths.has(mk);
+    const monthIncome = groups[mk].filter(t=>t.type==='income').reduce((s,t)=>s+Number(t.amount),0);
+    const monthExpense = groups[mk].filter(t=>t.type==='expense').reduce((s,t)=>s+Number(t.amount),0);
+
+    const items = !isOpen ? '' : groups[mk].map(t=>{
+      const vatInfo = t.vat ? `<span class="tiny" style="color:var(--accent-text)">ΦΠΑ: ${fmtMoney(vatPortion(t.amount))}</span>` : '';
+      return `
+      <div class="list-item">
+        <div class="li-row">
+          ${histSelectMode ? `<input type="checkbox" class="selbox" ${histSelected.has(t.id)?'checked':''} onchange="toggleHistSel('${t.id}')">` : ''}
+          <div style="flex:1">
+            <p class="name">${esc(t.category)}${t.vat?'<span class="vat-tag">ΦΠΑ</span>':''}${t.note?` <span class="tiny">· ${esc(t.note)}</span>`:''}</p>
+            <p class="sub">${fmtDate(t.date)} &middot; ${t.payment}${t.doc!=='none' ? ' &middot; '+(t.doc==='invoice'?'Τιμολόγιο':'Απόδειξη') : ''} ${vatInfo?'&middot; '+vatInfo:''}</p>
+          </div>
+          <div style="text-align:right">
+            <span class="amount ${t.type}" style="font-weight:700;font-size:14px">${t.type==='income'?'+':'-'}${fmtMoney(t.amount)}</span><br>
+            ${histSelectMode ? '' : `
+            <button class="ghost" style="padding:2px 4px;font-size:11px" onclick="editTx('${t.id}')">Επεξεργασία</button>
+            <button class="ghost" style="padding:2px 4px;font-size:11px" onclick="deleteTx('${t.id}')">Διαγραφή</button>`}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="card">
+      <div class="month-head" onclick="toggleMonth('${mk}')">
+        <h2>${monthNames[parseInt(m)-1]} ${y}</h2>
+        <span class="tiny"><span style="color:var(--success)">+${fmtMoney(monthIncome)}</span> / <span style="color:var(--danger)">-${fmtMoney(monthExpense)}</span> ${isOpen?'▲':'▼'}</span>
+      </div>
+      ${items}
+    </div>`;
+  }).join('');
+
+  return filterBar + cards;
+}
+function setHistType(v){ histFilterType=v; render(); }
+function setHistExtra(v){ histFilterExtra=v; render(); }
+function toggleMonth(mk){
+  if(openMonths.has(mk)) openMonths.delete(mk); else openMonths.add(mk);
+  render();
+}
+function toggleHistSelect(){
+  histSelectMode = !histSelectMode;
+  histSelected = new Set();
+  if(!openMonths) openMonths = new Set();
+  if(histSelectMode){ /* άνοιξε όλους τους ορατούς μήνες για ευκολία */
+    transactions.filter(histMatches).forEach(t=>openMonths.add(monthKey(t.date)));
+  }
+  render();
+}
+function toggleHistSel(id){
+  if(histSelected.has(id)) histSelected.delete(id); else histSelected.add(id);
+  render();
+}
+function deleteHistSelected(){
+  if(histSelected.size===0){ alert('Δεν έχεις επιλέξει τίποτα.'); return; }
+  if(!confirm(`Διαγραφή ${histSelected.size} καταχωρήσεων;`)) return;
+  histSelected.forEach(id=>unlinkAppt(id));
+  transactions = transactions.filter(t=>!histSelected.has(t.id));
+  histSelectMode = false; histSelected = new Set();
+  persist(); render();
+}
+
+/* ================= ΤΙΜΟΛΟΓΙΑ ================= */
+function renderInvoices(){
+  const invoices = transactions.filter(t=>t.doc==='invoice').sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const pending = invoices.filter(i=>!i.sent);
+  const pendingSum = pending.reduce((s,i)=>s+Number(i.amount),0);
+
+  if(invoices.length===0) return `<div class="card"><div class="empty">Δεν υπάρχουν τιμολόγια ακόμα.</div></div>`;
+
+  const pendingList = pending.length===0 ? '' : pending.map(t=>`
+    <div class="list-item">
+      <div class="li-row">
+        <div>
+          <p class="name">${esc(t.note)||esc(t.category)}</p>
+          <p class="sub">${esc(t.category)} &middot; ${fmtDate(t.date)}</p>
+        </div>
+        <span style="font-weight:700;font-size:14px">${fmtMoney(t.amount)}</span>
+      </div>
+    </div>`).join('');
+
+  const items = invoices.map(t=>`
+    <div class="list-item">
+      <div class="li-row">
+        <div>
+          <p class="name">${esc(t.note)||esc(t.category)}</p>
+          <p class="sub">${esc(t.category)} &middot; ${fmtDate(t.date)} &middot; ${fmtMoney(t.amount)}</p>
+        </div>
+        <button class="badge ${t.sent?'ok':'warn'}" onclick="toggleInvoiceSent('${t.id}')">
+          ${t.sent?'Εστάλη ✓':'Εκκρεμεί'}
+        </button>
+      </div>
+    </div>`).join('');
+
+  return `
+    <div class="card">
+      <h2>Εκκρεμή τιμολόγια <span class="tiny" style="font-weight:400">(δεν έχουν σταλεί στον λογιστή)</span></h2>
+      <p class="hero">${fmtMoney(pendingSum)}</p>
+      <p class="tiny" style="margin-bottom:${pending.length?'10px':'0'}">${pending.length} τιμολόγια εκκρεμούν συνολικά</p>
+      ${pendingList}
+    </div>
+    <div class="card"><h2>Όλα τα τιμολόγια</h2>${items}</div>`;
+}
+function toggleInvoiceSent(id){
+  const t = transactions.find(t=>t.id===id);
+  if(t){ t.sent = !t.sent; persist(); render(); }
+}
+
+/* ================= ΡΑΝΤΕΒΟΥ ================= */
+function apptMatchesFilter(a){
+  if(apptFilter==='pending') return a.status==='pending' || (a.status==='done' && !a.paid);
+  if(apptFilter==='done') return a.status==='done';
+  return true;
+}
+function renderApptItem(a){
+  const isDim = a.status==='done' && a.paid;
+  let statusLine = '';
+  if(a.status==='pending') statusLine = 'Εκκρεμεί';
+  if(a.status==='done') statusLine = a.paid ? 'Έγινε · Πληρώθηκε' : 'Έγινε · Δεν πληρώθηκε ακόμα';
+
+  let actions = '';
+  if(apptSelectMode){
+    actions = '';
+  } else if(a.status==='pending'){
+    actions = `
+      <button class="ghost" style="padding:2px 4px;font-size:11px" onclick="markDone('${a.id}')">Έγινε ✓</button>
+      <button class="ghost" style="padding:2px 4px;font-size:11px" onclick="editAppt('${a.id}')">Επεξεργασία</button>`;
+  } else if(a.status==='done' && !a.paid){
+    actions = `
+      <button class="badge warn" onclick="openPay('${a.id}')">Πληρωμή →</button>
+      <button class="ghost" style="padding:2px 4px;font-size:11px" onclick="editAppt('${a.id}')">Επεξεργασία</button>`;
+  } else if(a.status==='done' && a.paid){
+    actions = `<button class="badge ok" onclick="unpay('${a.id}')">Πληρώθηκε ✓</button>`;
+  }
+
+  let payPanel = '';
+  if(payingApptId === a.id && !apptSelectMode){
+    payPanel = `
+    <div class="payexpand">
+      <label>Πού πληρώθηκε;</label>
+      <div class="pillrow">
+        ${['Μετρητά','Κάρτα','Τράπεζα'].map(p=>`<button class="toggle ${payDraft.payment===p?'active':''}" onclick="setPayMethod('${p}')">${p}</button>`).join('')}
+      </div>
+      <div class="switch-row">
+        <span style="font-size:14px">Με ΦΠΑ (${settings.vatRate}%)</span>
+        <button class="switch ${payDraft.vat?'on':''}" onclick="togglePayVat()"></button>
+      </div>
+      <div class="row">
+        <button class="block" onclick="closePay()">Άκυρο</button>
+        <button class="primary block" onclick="confirmPay('${a.id}')">Καταχώρηση εσόδου</button>
+      </div>
+    </div>`;
+  }
+
+  return `
+  <div class="list-item">
+    <div class="li-row">
+      ${apptSelectMode ? `<input type="checkbox" class="selbox" ${apptSelected.has(a.id)?'checked':''} onchange="toggleApptSel('${a.id}')">` : ''}
+      <div style="flex:1">
+        <p class="name" style="${isDim?'color:var(--text-muted)':''}">${esc(a.client)||'—'}</p>
+        <p class="sub">${esc(a.service)} &middot; ${fmtDate(a.date)} &middot; ${statusLine}${a.note?` &middot; ${esc(a.note)}`:''}</p>
+      </div>
+      <div style="text-align:right">
+        <span style="font-size:13px;font-weight:600;${isDim?'color:var(--text-muted)':''}">${a.price?fmtMoney(a.price):'—'}</span><br>
+        ${actions}
+      </div>
+    </div>
+    ${payPanel}
+  </div>`;
+}
+function renderCalendar(){
+  const y = calMonth.y, m = calMonth.m;
+  const label = monthNames[m] + ' ' + y;
+  const firstDow = (new Date(y,m,1).getDay()+6)%7; // Δευτέρα = 0
+  const totalDays = daysInMonth(y, m);
+  const todayStr = todayISO();
+
+  const apptDates = {};
+  appointments.forEach(a=>{ (apptDates[a.date]=apptDates[a.date]||[]).push(a); });
+
+  let cells = ['Δε','Τρ','Τε','Πε','Πα','Σα','Κυ'].map(d=>`<div class="cal-head">${d}</div>`).join('');
+  for(let i=0;i<firstDow;i++) cells += `<div class="cal-day other"></div>`;
+  for(let d=1;d<=totalDays;d++){
+    const iso = isoOf(y, m, d);
+    const has = apptDates[iso] && apptDates[iso].length;
+    const cls = ['cal-day', iso===todayStr?'today':'', iso===calSelectedDate?'selected':''].join(' ');
+    cells += `<div class="${cls}" onclick="selectCalDate('${iso}')">${d}${has?'<span class="dot"></span>':''}</div>`;
+  }
+
+  const dayList = calSelectedDate
+    ? ((apptDates[calSelectedDate]||[]).map(renderApptItem).join('') || `<div class="empty">Κανένα ραντεβού στις ${fmtDate(calSelectedDate)}.</div>`)
+    : `<div class="empty">Πάτα μια μέρα για να δεις τα ραντεβού της.</div>`;
+
+  return `
+  <div class="month-nav">
+    <button onclick="shiftCalMonth(-1)">←</button>
+    <span class="label">${label}</span>
+    <button onclick="shiftCalMonth(1)">→</button>
+  </div>
+  <div class="cal-grid">${cells}</div>
+  ${dayList}`;
+}
+function renderAppointments(){
+  const cats = settings.serviceCategories.map(c=>`<option ${apptDraft.service===c?'selected':''}>${esc(c)}</option>`).join('');
+
+  const formCard = `
+  <div class="card">
+    <h2>${editingApptId ? 'Επεξεργασία ραντεβού' : 'Νέο ραντεβού'}</h2>
+    <label>Πελάτης</label>
+    <input type="text" id="a_client" placeholder="Όνομα πελάτη" value="${esc(apptDraft.client||'')}" oninput="apptDraft.client=this.value">
+    <label>Υπηρεσία</label>
+    <select id="a_service" onchange="apptDraft.service=this.value">${cats}</select>
+    <div class="grid2">
+      <div><label>Ημερομηνία</label><input type="date" id="a_date" value="${apptDraft.date}" onchange="apptDraft.date=this.value"></div>
+      <div><label>Τιμή (προαιρετικό)</label><input type="number" inputmode="decimal" id="a_price" placeholder="0.00" value="${apptDraft.price||''}" oninput="apptDraft.price=this.value"></div>
+    </div>
+    <label>Σημείωση (προαιρετικό)</label>
+    <input type="text" id="a_note" placeholder="π.χ. διεύθυνση, λεπτομέρειες" value="${esc(apptDraft.note||'')}" oninput="apptDraft.note=this.value">
+    <div class="row">
+      ${editingApptId ? `<button class="block" onclick="cancelApptEdit()">Άκυρο</button>` : ''}
+      <button class="primary block" onclick="saveAppt()">${editingApptId ? 'Ενημέρωση' : 'Προσθήκη'}</button>
+    </div>
+  </div>`;
+
+  let listCard;
+  if(apptView==='calendar'){
+    listCard = `<div class="card">
+      <div class="filterbar">
+        <button onclick="setApptView('list')">Λίστα</button>
+        <button class="active">Ημερολόγιο</button>
+      </div>
+      ${renderCalendar()}
+    </div>`;
+  } else {
+    const filtered = appointments.filter(apptMatchesFilter).sort((a,b)=> new Date(a.date)-new Date(b.date));
+    const items = filtered.length===0 ? `<div class="empty">Κανένα ραντεβού εδώ.</div>` : filtered.map(renderApptItem).join('');
+    listCard = `<div class="card">
+      <div class="filterbar">
+        <button class="active">Λίστα</button>
+        <button onclick="setApptView('calendar')">Ημερολόγιο</button>
+      </div>
+      <div class="filterbar">
+        ${[['pending','Ανοιχτά'],['done','Ολοκληρωμένα'],['all','Όλα']].map(([v,l])=>
+          `<button class="${apptFilter===v?'active':''}" onclick="setApptFilter('${v}')">${l}</button>`).join('')}
+      </div>
+      <div class="row" style="margin-bottom:10px">
+        ${apptSelectMode
+          ? `<button class="block" onclick="toggleApptSelect()">Άκυρο</button>
+             <button class="danger block" onclick="deleteApptSelected()">Διαγραφή (${apptSelected.size})</button>`
+          : `<button class="block ghost" style="border:1px dashed var(--border)" onclick="toggleApptSelect()">Επιλογή για μαζική διαγραφή</button>`}
+      </div>
+      ${items}
+    </div>`;
+  }
+
+  return formCard + listCard;
+}
+function setApptView(v){ apptView=v; payingApptId=null; render(); }
+function setApptFilter(v){ apptFilter=v; render(); }
+function shiftCalMonth(dir){ calMonth = monthShift(calMonth, dir); calSelectedDate=null; render(); }
+function selectCalDate(iso){ calSelectedDate = (calSelectedDate===iso) ? null : iso; render(); }
+function toggleApptSelect(){ apptSelectMode=!apptSelectMode; apptSelected=new Set(); payingApptId=null; render(); }
+function toggleApptSel(id){
+  if(apptSelected.has(id)) apptSelected.delete(id); else apptSelected.add(id);
+  render();
+}
+function deleteApptSelected(){
+  if(apptSelected.size===0){ alert('Δεν έχεις επιλέξει τίποτα.'); return; }
+  if(!confirm(`Διαγραφή ${apptSelected.size} ραντεβού; (Τα έσοδα από πληρωμένα ραντεβού ΔΕΝ διαγράφονται.)`)) return;
+  appointments = appointments.filter(a=>!apptSelected.has(a.id));
+  apptSelectMode=false; apptSelected=new Set();
+  persist(); render();
+}
+function saveAppt(){
+  const client = document.getElementById('a_client').value;
+  const service = document.getElementById('a_service').value;
+  const date = document.getElementById('a_date').value;
+  const price = parseFloat(document.getElementById('a_price').value) || null;
+  const note = document.getElementById('a_note').value;
+  if(!date){ alert('Βάλε ημερομηνία.'); return; }
+
+  if(editingApptId){
+    const a = appointments.find(a=>a.id===editingApptId);
+    if(a){ a.client=client; a.service=service; a.date=date; a.price=price; a.note=note; }
+    editingApptId = null;
+  } else {
+    appointments.push({ id: uid(), client, service, date, price, note, status:'pending', paid:false, txId:null });
+  }
+  apptDraft = { date: todayISO() };
+  persist(); render();
+}
+function editAppt(id){
+  const a = appointments.find(a=>a.id===id);
+  if(!a) return;
+  editingApptId = id;
+  apptDraft = { client:a.client, service:a.service, date:a.date, price:a.price, note:a.note };
+  render();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function cancelApptEdit(){ editingApptId=null; apptDraft={date:todayISO()}; render(); }
+function markDone(id){
+  const a = appointments.find(a=>a.id===id);
+  if(a){ a.status='done'; persist(); render(); }
+}
+function openPay(id){
+  const a = appointments.find(a=>a.id===id);
+  if(a && (!a.price || a.price<=0)){
+    alert('Το ραντεβού δεν έχει τιμή. Πάτα "Επεξεργασία" και βάλε τιμή πρώτα.');
+    return;
+  }
+  payingApptId = id;
+  payDraft = { payment:'Μετρητά', vat:false };
+  render();
+}
+function closePay(){ payingApptId=null; render(); }
+function setPayMethod(p){ payDraft.payment=p; render(); }
+function togglePayVat(){ payDraft.vat=!payDraft.vat; render(); }
+function confirmPay(id){
+  const a = appointments.find(a=>a.id===id);
+  if(!a) return;
+  const tx = {
+    id: uid(), type:'income', amount: Number(a.price), category: a.service,
+    date: todayISO(), payment: payDraft.payment, vat: payDraft.vat,
+    doc:'none', sent:false, note: a.client||''
+  };
+  transactions.push(tx);
+  a.paid = true; a.txId = tx.id;
+  payingApptId = null;
+  persist(); render();
+}
+function unpay(id){
+  const a = appointments.find(a=>a.id===id);
+  if(!a) return;
+  if(!confirm('Αναίρεση πληρωμής; Θα διαγραφεί και το αντίστοιχο έσοδο από το ιστορικό.')) return;
+  if(a.txId) transactions = transactions.filter(t=>t.id!==a.txId);
+  a.paid=false; a.txId=null;
+  persist(); render();
+}
+
+/* ================= ΣΤΑΤΙΣΤΙΚΑ ================= */
+function realExpenses(list){ return list.filter(t=>t.type==='expense' && !t.vatPayment); }
+function renderBreakdown(rows, emptyMsg){
+  if(!rows.length) return `<div class="breakdown"><p class="tiny" style="margin:0">${emptyMsg}</p></div>`;
+  return `<div class="breakdown">${rows.map(([label, val])=>
+    `<div class="bd-row"><span>${esc(label)}</span><strong>${fmtMoney(val)}</strong></div>`).join('')}</div>`;
+}
+function groupSum(list, keyFn){
+  const g = {};
+  list.forEach(t=>{ const k=keyFn(t); g[k]=(g[k]||0)+Number(t.amount); });
+  return Object.entries(g).sort((a,b)=>b[1]-a[1]);
+}
+function renderStats(){
+  const mk = mkOf(currentMonth);
+  const label = monthNames[currentMonth.m] + ' ' + currentMonth.y;
+  const monthTx = txForMonth(mk);
+  const income = monthTx.filter(t=>t.type==='income').reduce((s,t)=>s+Number(t.amount),0);
+  const expense = realExpenses(monthTx).reduce((s,t)=>s+Number(t.amount),0);
+
+  const vatIncome = monthTx.filter(t=>t.type==='income'&&t.vat).reduce((s,t)=>s+vatPortion(t.amount),0);
+  const vatExpense = realExpenses(monthTx).filter(t=>t.vat).reduce((s,t)=>s+vatPortion(t.amount),0);
+  const vatOwed = vatIncome - vatExpense;
+  const vatPaid = monthTx.filter(t=>t.vatPayment).reduce((s,t)=>s+Number(t.amount),0);
+  const vatRemaining = Math.max(0, vatOwed - vatPaid);
+  const vatIsCredit = vatOwed < 0;
+
+  const net = income - expense - Math.max(0, vatOwed);
+
+  const cashIncome = monthTx.filter(t=>t.type==='income'&&t.payment==='Μετρητά').reduce((s,t)=>s+Number(t.amount),0);
+  const cardIncome = monthTx.filter(t=>t.type==='income'&&t.payment==='Κάρτα').reduce((s,t)=>s+Number(t.amount),0);
+  const bankIncome = monthTx.filter(t=>t.type==='income'&&t.payment==='Τράπεζα').reduce((s,t)=>s+Number(t.amount),0);
+
+  const pendingInvoices = transactions.filter(t=>t.doc==='invoice'&&!t.sent);
+
+  const prevTx = txForMonth(mkOf(monthShift(currentMonth, -1)));
+  const prevIncome = prevTx.filter(t=>t.type==='income').reduce((s,t)=>s+Number(t.amount),0);
+  const delta = prevIncome>0 ? Math.round(((income-prevIncome)/prevIncome)*100) : null;
+
+  /* breakdowns */
+  let breakdownHtml = '';
+  if(expandedStat==='expense'){
+    breakdownHtml = renderBreakdown(groupSum(realExpenses(monthTx), t=>t.category), 'Κανένα έξοδο αυτόν τον μήνα.');
+  } else if(expandedStat==='cash' || expandedStat==='card' || expandedStat==='bank'){
+    const method = expandedStat==='cash'?'Μετρητά':expandedStat==='card'?'Κάρτα':'Τράπεζα';
+    breakdownHtml = renderBreakdown(
+      groupSum(monthTx.filter(t=>t.type==='income'&&t.payment===method), t=>t.category + (t.note?` (${t.note})`:'')),
+      `Κανένα έσοδο με ${method} αυτόν τον μήνα.`);
+  } else if(expandedStat==='pendinginv'){
+    breakdownHtml = renderBreakdown(
+      pendingInvoices.map(t=>[`${t.note||t.category} · ${fmtDate(t.date)}`, Number(t.amount)]),
+      'Κανένα εκκρεμές τιμολόγιο.');
+  }
+
+  /* πληρωμή ΦΠΑ panel */
+  let vatPayPanel = '';
+  if(vatPayOpen && vatRemaining > 0){
+    vatPayPanel = `
+    <div class="payexpand">
+      <label>Πληρωμή ΦΠΑ ${fmtMoney(vatRemaining)} — από πού;</label>
+      <div class="pillrow">
+        ${['Κάρτα','Τράπεζα'].map(p=>`<button class="toggle ${vatPayDraft.payment===p?'active':''}" onclick="setVatPayMethod('${p}')">${p}</button>`).join('')}
+      </div>
+      <div class="row">
+        <button class="block" onclick="toggleVatPay()">Άκυρο</button>
+        <button class="primary block" onclick="confirmVatPay(${vatRemaining}, '${mk}')">Καταχώρηση πληρωμής</button>
+      </div>
+    </div>`;
+  }
+
+  const vatLabel = vatIsCredit ? 'ΦΠΑ πιστωτικό (υπέρ σου)'
+    : (vatRemaining<=0 && vatOwed>0) ? 'ΦΠΑ — πληρώθηκε ✓'
+    : 'ΦΠΑ χρεωστικό (πληρώνεις)';
+  const vatColor = vatIsCredit || (vatRemaining<=0 && vatOwed>0) ? 'var(--success)' : 'var(--danger)';
+  const vatBg = vatIsCredit || (vatRemaining<=0 && vatOwed>0) ? 'var(--success-light)' : 'var(--danger-light)';
+  const vatShown = vatIsCredit ? Math.abs(vatOwed) : vatRemaining;
+
+  /* κινήσεις μήνα (μεταφορές + διορθώσεις) */
+  const monthTransfers = transfers.filter(x=>monthKey(x.date)===mk);
+  const monthAdjust = adjustments.filter(x=>monthKey(x.date)===mk);
+  const movementsList = (monthTransfers.length + monthAdjust.length)===0
+    ? `<div class="empty" style="padding:14px">Καμία μεταφορά/διόρθωση αυτόν τον μήνα.</div>`
+    : monthTransfers.map(x=>`
+      <div class="list-item"><div class="li-row">
+        <div><p class="name">${x.from} → ${x.to}</p><p class="sub">${fmtDate(x.date)}</p></div>
+        <div style="text-align:right"><span style="font-weight:700;font-size:13px">${fmtMoney(x.amount)}</span><br>
+        <button class="ghost" style="padding:2px 4px;font-size:11px" onclick="deleteTransfer('${x.id}')">Διαγραφή</button></div>
+      </div></div>`).join('')
+      + monthAdjust.map(x=>`
+      <div class="list-item"><div class="li-row">
+        <div><p class="name">Διόρθωση: ${x.method}</p><p class="sub">${fmtDate(x.date)}</p></div>
+        <div style="text-align:right"><span style="font-weight:700;font-size:13px;color:${x.delta>=0?'var(--success)':'var(--danger)'}">${x.delta>=0?'+':''}${fmtMoney(x.delta)}</span><br>
+        <button class="ghost" style="padding:2px 4px;font-size:11px" onclick="deleteAdjust('${x.id}')">Διαγραφή</button></div>
+      </div></div>`).join('');
+
+  const fixedList = fixedExpenses.map(f=>`
+    <div class="list-item">
+      <div class="li-row">
+        <div><p class="name">${esc(f.name)}${f.vat?'<span class="vat-tag">ΦΠΑ</span>':''}</p><p class="sub">${fmtMoney(f.amount)} / μήνα &middot; ${f.payment} &middot; ${f.dayOfMonth||1}η του μήνα</p></div>
+        <div style="text-align:right">
+          <button class="badge ${f.active?'ok':'plain'}" onclick="toggleFixed('${f.id}')">${f.active?'Ενεργό':'Ανενεργό'}</button>
+          <button class="ghost" style="padding:2px 4px;font-size:11px" onclick="deleteFixed('${f.id}')">Διαγραφή</button>
+        </div>
+      </div>
+    </div>`).join('') || `<div class="empty">Δεν έχεις πάγια έξοδα ακόμα.</div>`;
+
+  const svcChips = settings.serviceCategories.map((c,i)=>
+    `<span class="chip">${esc(c)}<button title="Μετονομασία" onclick="renameCategory('service',${i})">✎</button><button onclick="removeCategory('service',${i})">×</button></span>`).join('');
+  const expChips = settings.expenseCategories.map((c,i)=>
+    `<span class="chip">${esc(c)}<button title="Μετονομασία" onclick="renameCategory('expense',${i})">✎</button><button onclick="removeCategory('expense',${i})">×</button></span>`).join('');
+
+  return `
+  <div class="card">
+    <h2>Πορτοφόλι <span class="tiny" style="font-weight:400">(τρέχον υπόλοιπο — πάτα ✎ για διόρθωση)</span></h2>
+    <div class="grid2">
+      <div class="stat"><p class="l">Μετρητά</p><p class="v">${fmtMoney(walletBalance('Μετρητά'))}</p><button class="edit" onclick="editWallet('Μετρητά')">✎</button></div>
+      <div class="stat"><p class="l">Κάρτα</p><p class="v">${fmtMoney(walletBalance('Κάρτα'))}</p><button class="edit" onclick="editWallet('Κάρτα')">✎</button></div>
+      <div class="stat" style="grid-column:span 2"><p class="l">Τράπεζα</p><p class="v">${fmtMoney(walletBalance('Τράπεζα'))}</p><button class="edit" onclick="editWallet('Τράπεζα')">✎</button></div>
+    </div>
+    <div class="details-toggle" onclick="toggleTransferForm()">
+      <span>Μεταφορά μεταξύ μεθόδων (π.χ. κατάθεση μετρητών)</span><span>${transferFormOpen?'▲':'▼'}</span>
+    </div>
+    <div class="details-body ${transferFormOpen?'open':''}">
+      <div class="grid2" style="margin-top:12px">
+        <div>
+          <label>Από</label>
+          <select id="tr_from">
+            <option ${transferDraft.from==='Μετρητά'?'selected':''}>Μετρητά</option>
+            <option ${transferDraft.from==='Κάρτα'?'selected':''}>Κάρτα</option>
+            <option ${transferDraft.from==='Τράπεζα'?'selected':''}>Τράπεζα</option>
+          </select>
+        </div>
+        <div>
+          <label>Σε</label>
+          <select id="tr_to">
+            <option ${transferDraft.to==='Μετρητά'?'selected':''}>Μετρητά</option>
+            <option ${transferDraft.to==='Κάρτα'?'selected':''}>Κάρτα</option>
+            <option ${transferDraft.to==='Τράπεζα'?'selected':''}>Τράπεζα</option>
+          </select>
+        </div>
+      </div>
+      <label>Ποσό (€)</label>
+      <input type="number" inputmode="decimal" id="tr_amount" placeholder="0.00">
+      <label>Ημερομηνία</label>
+      <input type="date" id="tr_date" value="${todayISO()}">
+      <button class="primary block" onclick="saveTransfer()">Καταγραφή μεταφοράς</button>
+    </div>
+    <div class="details-toggle" onclick="toggleMovements()">
+      <span>Κινήσεις μήνα (μεταφορές &amp; διορθώσεις)</span><span>${movementsOpen?'▲':'▼'}</span>
+    </div>
+    <div class="details-body ${movementsOpen?'open':''}">${movementsList}</div>
+  </div>
+
+  <div class="card">
+    <div class="month-nav">
+      <button onclick="shiftMonth(-1)">←</button>
+      <span class="label">${label}</span>
+      <button onclick="shiftMonth(1)">→</button>
+    </div>
+    <p class="tiny" style="margin:0">Τζίρος <span style="font-weight:400">(σύνολο εσόδων μήνα, πριν από έξοδα &amp; ΦΠΑ)</span></p>
+    <p class="hero">${fmtMoney(income)}</p>
+    <p class="delta ${delta===null?'':(delta>=0?'up':'down')}">${delta===null?'Χωρίς σύγκριση με προηγούμενο μήνα':(delta>=0?'+':'')+delta+'% από προηγούμενο μήνα'}</p>
+
+    <div class="grid2" style="margin-top:14px">
+      <div class="stat tappable" onclick="toggleStatPanel('expense')"><p class="l">Έξοδα (πάγια + μεταβλητά)</p><p class="v">${fmtMoney(expense)}</p></div>
+      <div class="stat"><p class="l">Καθαρό κέρδος (μετά ΦΠΑ)</p><p class="v">${fmtMoney(net)}</p></div>
+      <div class="stat" style="background:${vatBg}">
+        <p class="l" style="color:${vatColor}">${vatLabel}</p>
+        <p class="v" style="color:${vatColor}">${fmtMoney(vatShown)}</p>
+        ${(!vatIsCredit && vatRemaining>0) ? `<button class="edit" style="font-size:11px;color:${vatColor};font-weight:700" onclick="toggleVatPay()">Πληρωμή →</button>` : ''}
+      </div>
+      <div class="stat tappable" style="background:var(--warning-light)" onclick="toggleStatPanel('pendinginv')"><p class="l" style="color:var(--warning)">Εκκρεμή τιμ. (συνολικά)</p><p class="v" style="color:var(--warning)">${pendingInvoices.length}</p></div>
+    </div>
+    ${vatPayPanel}
+
+    <h2 style="margin-top:16px">Έσοδα ανά τρόπο πληρωμής <span class="tiny" style="font-weight:400">(πάτα για ανάλυση)</span></h2>
+    <div class="grid2">
+      <div class="stat tappable" onclick="toggleStatPanel('cash')"><p class="l">Μετρητά</p><p class="v">${fmtMoney(cashIncome)}</p></div>
+      <div class="stat tappable" onclick="toggleStatPanel('card')"><p class="l">Κάρτα</p><p class="v">${fmtMoney(cardIncome)}</p></div>
+      <div class="stat tappable" style="grid-column:span 2" onclick="toggleStatPanel('bank')"><p class="l">Τράπεζα</p><p class="v">${fmtMoney(bankIncome)}</p></div>
+    </div>
+    ${breakdownHtml}
+
+    <button class="block" style="margin-top:14px" onclick="openShare()">Δημιούργησε περίληψη για τον λογιστή</button>
+  </div>
+
+  <div class="card">
+    <h2>Πάγια έξοδα <span class="tiny" style="font-weight:400">(καταχωρούνται αυτόματα κάθε μήνα ως κίνηση)</span></h2>
+    ${fixedList}
+    <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+      <label>Όνομα</label><input type="text" id="fx_name" placeholder="π.χ. Ενοίκιο">
+      <div class="grid2">
+        <div><label>Ποσό (€)</label><input type="number" inputmode="decimal" id="fx_amount" placeholder="0.00"></div>
+        <div><label>Ημέρα μήνα</label><input type="number" id="fx_day" placeholder="1" min="1" max="31" value="1"></div>
+      </div>
+      <label>Έναρξη από</label>
+      <input type="date" id="fx_start" value="${todayISO()}">
+      <label>Πληρώνεται από</label>
+      <div class="pillrow">
+        ${['Μετρητά','Κάρτα','Τράπεζα'].map(p=>`<button class="toggle ${fixedDraft.payment===p?'active':''}" onclick="setFixedPayment('${p}')">${p}</button>`).join('')}
+      </div>
+      <div class="switch-row">
+        <span style="font-size:14px">Με ΦΠΑ (${settings.vatRate}%)</span>
+        <button class="switch ${fixedDraft.vat?'on':''}" onclick="toggleFixedVat()"></button>
+      </div>
+      <button class="primary block" onclick="addFixed()">Προσθήκη πάγιου</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Κατηγορίες <span class="tiny" style="font-weight:400">(✎ μετονομασία, × διαγραφή)</span></h2>
+    <label>Υπηρεσίες (έσοδα &amp; ραντεβού)</label>
+    <div class="chips">${svcChips || '<span class="tiny">Καμία</span>'}</div>
+    <div class="row" style="margin-bottom:16px">
+      <input type="text" id="new_svc" placeholder="Νέα υπηρεσία" style="margin-bottom:0">
+      <button onclick="addCategory('service')">+</button>
+    </div>
+    <label>Έξοδα</label>
+    <div class="chips">${expChips || '<span class="tiny">Καμία</span>'}</div>
+    <div class="row">
+      <input type="text" id="new_exp" placeholder="Νέα κατηγορία εξόδου" style="margin-bottom:0">
+      <button onclick="addCategory('expense')">+</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Δεδομένα &amp; Ρυθμίσεις</h2>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="block" onclick="exportBackup()">📤 Export backup (JSON)</button>
+      <button class="block" onclick="document.getElementById('importFile').click()">📥 Import backup (JSON)</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(this)">
+      <div style="border-top:1px solid var(--border);padding-top:10px">
+        <button class="block ghost" style="border:1px dashed var(--danger);color:var(--danger)" onclick="clearAllData()">🗑 Εκκαθάριση ΟΛΩΝ των δεδομένων</button>
+      </div>
+    </div>
+    <p class="tiny" style="margin-top:10px">Έκδοση: 2.0 · Δεδομένα: ${transactions.length} κινήσεις, ${appointments.length} ραντεβού</p>
+  </div>`;
+}
+function exportBackup(){
+  const data = {
+    version: 2, exportedAt: todayISO(),
+    transactions, fixedExpenses, appointments, transfers, adjustments, settings
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'bioclean-backup-' + todayISO() + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importBackup(input){
+  const file = input.files[0];
+  if(!file) return;
+  if(!confirm('Θα αντικατασταθούν ΟΛΑ τα τρέχοντα δεδομένα με αυτά του backup. Συνέχεια;')) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!data.transactions) throw new Error('Μη έγκυρο αρχείο');
+      transactions = data.transactions || [];
+      fixedExpenses = data.fixedExpenses || [];
+      appointments = data.appointments || [];
+      transfers = data.transfers || [];
+      adjustments = data.adjustments || [];
+      if(data.settings) settings = { ...settings, ...data.settings };
+      persist();
+      alert('Backup επαναφέρθηκε επιτυχώς.');
+      render();
+    } catch(err){
+      alert('Σφάλμα: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+function clearAllData(){
+  if(!confirm('ΠΡΟΣΟΧΗ: Θα διαγραφούν ΟΛΑ τα δεδομένα (κινήσεις, ραντεβού, πάγια, μεταφορές). Αυτό δεν αναιρείται.')) return;
+  if(!confirm('Είσαι σίγουρος; Κάνε πρώτα Export backup αν θέλεις να τα κρατήσεις.')) return;
+  transactions = []; fixedExpenses = []; appointments = [];
+  transfers = []; adjustments = [];
+  settings.genFixed = [];
+  settings.fixedRepaired = false;
+  settings.dateRepairDone = false;
+  openMonths = null;
+  persist();
+  render();
+  alert('Όλα τα δεδομένα διαγράφηκαν.');
+}
+function shiftMonth(dir){ currentMonth = monthShift(currentMonth, dir); expandedStat=null; vatPayOpen=false; render(); }
+function toggleStatPanel(which){ expandedStat = (expandedStat===which) ? null : which; render(); }
+function toggleMovements(){ movementsOpen=!movementsOpen; render(); }
+function toggleVatPay(){ vatPayOpen=!vatPayOpen; render(); }
+function setVatPayMethod(p){ vatPayDraft.payment=p; render(); }
+function confirmVatPay(amount, mk){
+  // η πληρωμή καταγράφεται με ημερομηνία μέσα στον μήνα που αφορά, ώστε να μηδενίζει το σωστό κουτί
+  const today = todayISO();
+  const date = monthKey(today)===mk ? today : mk+'-28';
+  transactions.push({
+    id: uid(), type:'expense', amount: Math.round(amount*100)/100, category:'Πληρωμή ΦΠΑ',
+    date, payment: vatPayDraft.payment, vat:false, doc:'none', sent:false, note:'', vatPayment:true
+  });
+  vatPayOpen = false;
+  persist(); render();
+}
+function editWallet(method){
+  const cur = walletBalance(method);
+  const input = prompt(`Νέο υπόλοιπο για "${method}" (τρέχον: ${fmtMoney(cur)})`);
+  if(input===null) return;
+  const val = parseFloat(String(input).replace(',','.'));
+  if(isNaN(val)){ alert('Μη έγκυρο ποσό.'); return; }
+  const delta = Math.round((val - cur)*100)/100;
+  if(delta===0) return;
+  adjustments.push({ id: uid(), date: todayISO(), method, delta });
+  persist(); render();
+}
+function deleteTransfer(id){
+  if(!confirm('Διαγραφή μεταφοράς;')) return;
+  transfers = transfers.filter(x=>x.id!==id);
+  persist(); render();
+}
+function deleteAdjust(id){
+  if(!confirm('Διαγραφή διόρθωσης;')) return;
+  adjustments = adjustments.filter(x=>x.id!==id);
+  persist(); render();
+}
+function toggleFixed(id){
+  const f = fixedExpenses.find(f=>f.id===id);
+  if(f){ f.active=!f.active; persist(); materializeFixed(); render(); }
+}
+function deleteFixed(id){
+  const f = fixedExpenses.find(f=>f.id===id);
+  if(!f) return;
+  const autoTx = transactions.filter(t=>t.fixedId===id);
+  let msg = 'Διαγραφή πάγιου;';
+  if(autoTx.length) msg += `\n\nΥπάρχουν ${autoTx.length} αυτόματες κινήσεις. Πάτα ΟΚ για να διαγραφούν κι αυτές, ή Άκυρο για να μείνει ως έχει.`;
+  if(!confirm(msg)) return;
+  if(autoTx.length){
+    transactions = transactions.filter(t=>t.fixedId!==id);
+    settings.genFixed = settings.genFixed.filter(mk=>!mk.startsWith(id+':'));
+  }
+  fixedExpenses = fixedExpenses.filter(f=>f.id!==id);
+  persist(); render();
+}
+function addFixed(){
+  const name = document.getElementById('fx_name').value.trim();
+  const amount = parseFloat(document.getElementById('fx_amount').value);
+  const day = parseInt(document.getElementById('fx_day').value) || 1;
+  const startMonth = document.getElementById('fx_start').value || todayISO();
+  if(!name || !amount || amount<=0){ alert('Συμπλήρωσε όνομα και ποσό.'); return; }
+  if(day<1 || day>31){ alert('Η ημέρα πρέπει να είναι 1-31.'); return; }
+  fixedExpenses.push({
+    id: uid(), name, amount, dayOfMonth: day,
+    payment: fixedDraft.payment, vat: fixedDraft.vat,
+    active:true, startMonth, createdAt: todayISO()
+  });
+  fixedDraft = { payment:'Τράπεζα', vat:false };
+  persist();
+  materializeFixed();
+  render();
+}
+function setFixedPayment(p){ fixedDraft.payment = p; render(); }
+function toggleFixedVat(){ fixedDraft.vat = !fixedDraft.vat; render(); }
+
+/* ---- κατηγορίες ---- */
+function addCategory(kind){
+  const el = document.getElementById(kind==='service' ? 'new_svc' : 'new_exp');
+  const val = el.value.trim();
+  if(!val) return;
+  const list = kind==='service' ? settings.serviceCategories : settings.expenseCategories;
+  if(list.includes(val)){ alert('Υπάρχει ήδη.'); return; }
+  list.push(val);
+  persist(); render();
+}
+function renameCategory(kind, idx){
+  const list = kind==='service' ? settings.serviceCategories : settings.expenseCategories;
+  const oldName = list[idx];
+  const input = prompt(`Νέο όνομα για "${oldName}"`, oldName);
+  if(input===null) return;
+  const newName = input.trim();
+  if(!newName || newName===oldName) return;
+  if(list.includes(newName)){ alert('Υπάρχει ήδη κατηγορία με αυτό το όνομα.'); return; }
+  list[idx] = newName;
+  // ενημέρωση παλιών εγγραφών ώστε φίλτρα/στατιστικά να μένουν συνεπή
+  transactions.forEach(t=>{ if(t.category===oldName) t.category=newName; });
+  if(kind==='service') appointments.forEach(a=>{ if(a.service===oldName) a.service=newName; });
+  fixedExpenses.forEach(f=>{ if(f.name===oldName) f.name=newName; });
+  persist(); render();
+}
+function removeCategory(kind, idx){
+  const list = kind==='service' ? settings.serviceCategories : settings.expenseCategories;
+  if(list.length<=1){ alert('Πρέπει να υπάρχει τουλάχιστον μία κατηγορία.'); return; }
+  if(!confirm(`Αφαίρεση "${list[idx]}"; Οι παλιές καταχωρήσεις δεν επηρεάζονται.`)) return;
+  list.splice(idx,1);
+  persist(); render();
+}
+
+/* ---- μεταφορές ---- */
+function toggleTransferForm(){ transferFormOpen=!transferFormOpen; render(); }
+function saveTransfer(){
+  const from = document.getElementById('tr_from').value;
+  const to = document.getElementById('tr_to').value;
+  const amount = parseFloat(document.getElementById('tr_amount').value);
+  const date = document.getElementById('tr_date').value;
+  if(from===to){ alert('Διάλεξε δύο διαφορετικές μεθόδους.'); return; }
+  if(!amount || amount<=0){ alert('Βάλε ένα έγκυρο ποσό.'); return; }
+  const bal = walletBalance(from);
+  if(amount > bal + 0.01){
+    if(!confirm(`Προσοχή: το υπόλοιπο σε "${from}" είναι ${fmtMoney(bal)}, λιγότερο από ${fmtMoney(amount)}. Συνέχεια;`)) return;
+  }
+  transfers.push({ id: uid(), date, from, to, amount });
+  transferDraft = { from, to };
+  transferFormOpen = false;
+  persist(); render();
+}
+
+/* ---- περίληψη λογιστή ---- */
+function openShare(){
+  const mk = mkOf(currentMonth);
+  const label = monthNames[currentMonth.m] + ' ' + currentMonth.y;
+  const monthTx = txForMonth(mk);
+  const income = monthTx.filter(t=>t.type==='income').reduce((s,t)=>s+Number(t.amount),0);
+  const expense = realExpenses(monthTx).reduce((s,t)=>s+Number(t.amount),0);
+  const pending = transactions.filter(t=>t.doc==='invoice'&&!t.sent);
+
+  let text = `BioCleanProject — ${label}\n\n`;
+  text += `Τζίρος (έσοδα): ${fmtMoney(income)}\nΈξοδα: ${fmtMoney(expense)}\nΔιαφορά: ${fmtMoney(income-expense)}\n\n`;
+  text += `Κινήσεις:\n`;
+  monthTx.forEach(t=>{
+    text += `${fmtDate(t.date)} | ${t.type==='income'?'Έσοδο':'Έξοδο'} | ${t.category}${t.note?' ('+t.note+')':''} | ${fmtMoney(t.amount)} | ${t.payment}${t.vat?' | ΦΠΑ '+fmtMoney(vatPortion(t.amount)):''}${t.doc!=='none'?' | '+(t.doc==='invoice'?'Τιμολόγιο':'Απόδειξη'):''}\n`;
+  });
+  if(pending.length){
+    text += `\nΕκκρεμή τιμολόγια (${pending.length}):\n`;
+    pending.forEach(t=> text += `${fmtDate(t.date)} | ${t.note||t.category} | ${fmtMoney(t.amount)}\n`);
+  }
+
+  document.getElementById('shareText').value = text;
+  document.getElementById('shareBox').classList.add('open');
+
+  if(navigator.share){
+    navigator.share({ title:'BioCleanProject - '+label, text }).catch(()=>{});
+  }
+}
+function closeShare(){ document.getElementById('shareBox').classList.remove('open'); }
+function copyShare(){
+  const el = document.getElementById('shareText');
+  el.select();
+  try{ document.execCommand('copy'); alert('Αντιγράφηκε.'); }
+  catch(e){ alert('Κράτησε πατημένο το κείμενο για αντιγραφή.'); }
+}
+
+/* ================= CALCULATOR ================= */
+let calcDisplay = '0', calcAcc = null, calcOpPending = null, calcWaitNew = true;
+const OP_SYM = {'+':'+','-':'−','*':'×','/':'÷'};
+
+function calcFormat(str){
+  if(str==='Σφάλμα') return str;
+  const neg = str.startsWith('-');
+  let s = neg ? str.slice(1) : str;
+  const [int, dec] = s.split('.');
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return (neg?'-':'') + grouped + (dec!==undefined ? ',' + dec : (s.endsWith('.') ? ',' : ''));
+}
+function calcUpdate(){
+  document.getElementById('calcDisplay').textContent = calcFormat(calcDisplay);
+  const expr = (calcAcc!==null && calcOpPending)
+    ? calcFormat(String(calcAcc)) + ' ' + OP_SYM[calcOpPending]
+    : '';
+  document.getElementById('calcExpr').textContent = expr;
+  ['+','-','*','/'].forEach(o=>{
+    const el = document.getElementById('op-'+o);
+    if(el) el.classList.toggle('armed', calcOpPending===o && calcWaitNew);
+  });
+}
+function openCalc(){ document.getElementById('calcBox').classList.add('open'); calcUpdate(); }
+function closeCalc(){ document.getElementById('calcBox').classList.remove('open'); }
+
+function calcDigit(d){
+  if(calcDisplay==='Σφάλμα') calcClear();
+  if(calcWaitNew){ calcDisplay = d; calcWaitNew = false; }
+  else if(calcDisplay.replace(/[-.]/g,'').length < 12){
+    calcDisplay = calcDisplay==='0' ? d : calcDisplay + d;
+  }
+  calcUpdate();
+}
+function calcDot(){
+  if(calcDisplay==='Σφάλμα') calcClear();
+  if(calcWaitNew){ calcDisplay='0.'; calcWaitNew=false; }
+  else if(!calcDisplay.includes('.')) calcDisplay += '.';
+  calcUpdate();
+}
+function calcSign(){
+  if(calcDisplay==='Σφάλμα' || calcDisplay==='0') return;
+  calcDisplay = calcDisplay.startsWith('-') ? calcDisplay.slice(1) : '-' + calcDisplay;
+  calcUpdate();
+}
+function calcCompute(){
+  const b = parseFloat(calcDisplay);
+  let res;
+  if(calcOpPending==='+') res = calcAcc + b;
+  else if(calcOpPending==='-') res = calcAcc - b;
+  else if(calcOpPending==='*') res = calcAcc * b;
+  else if(calcOpPending==='/'){
+    if(b===0){ calcDisplay='Σφάλμα'; calcAcc=null; calcOpPending=null; calcWaitNew=true; calcUpdate(); return false; }
+    res = calcAcc / b;
+  } else return true;
+  res = Math.round(res * 1e10) / 1e10;
+  calcDisplay = String(res);
+  calcAcc = res;
+  calcWaitNew = true;
+  return true;
+}
+function calcOp(o){
+  if(calcDisplay==='Σφάλμα') return;
+  if(calcOpPending!==null && !calcWaitNew){ if(!calcCompute()) return; }
+  else { calcAcc = parseFloat(calcDisplay); }
+  calcOpPending = o;
+  calcWaitNew = true;
+  calcUpdate();
+}
+function calcEquals(){
+  if(calcDisplay==='Σφάλμα') return;
+  if(calcOpPending!==null && !calcWaitNew){ if(!calcCompute()) return; }
+  calcOpPending = null;
+  calcAcc = null;
+  calcWaitNew = true;
+  calcUpdate();
+}
+function calcPercent(){
+  if(calcDisplay==='Σφάλμα') return;
+  const v = parseFloat(calcDisplay);
+  // αν υπάρχει εκκρεμής πράξη, το % υπολογίζεται πάνω στον πρώτο αριθμό (όπως στα κανονικά calculators)
+  const base = (calcAcc!==null && calcOpPending && (calcOpPending==='+'||calcOpPending==='-')) ? calcAcc : 100;
+  const res = Math.round((v/100)*base * 1e10) / 1e10;
+  calcDisplay = String(res);
+  calcWaitNew = false;
+  calcUpdate();
+}
+function calcBack(){
+  if(calcDisplay==='Σφάλμα'){ calcClear(); return; }
+  if(calcWaitNew) return;
+  calcDisplay = calcDisplay.length>1 ? calcDisplay.slice(0,-1) : '0';
+  if(calcDisplay==='-' || calcDisplay==='0'){ calcDisplay='0'; calcWaitNew=true; }
+  calcUpdate();
+}
+function calcClear(){
+  calcDisplay='0'; calcAcc=null; calcOpPending=null; calcWaitNew=true;
+  calcUpdate();
+}
+
+/* ================= INIT ================= */
+repairLegacyFixed();
+materializeFixed();
+render();
+</script>
+</body>
+</html>
