@@ -66,6 +66,8 @@
   .stat .l{font-size:11px;color:var(--text-2);margin:0}
   .stat .v{font-size:18px;font-weight:700;margin:2px 0 0}
   .stat .edit{position:absolute;right:8px;bottom:6px;background:none;border:none;padding:2px;font-size:12px;color:var(--text-muted)}
+  .stat .paybtn{display:block;width:100%;margin-top:8px;padding:6px 8px;font-size:12px;font-weight:700;
+    border:1px solid currentColor;border-radius:8px;background:rgba(255,255,255,.55)}
   .breakdown{background:var(--bg);border-radius:10px;padding:12px;margin-top:10px}
   .breakdown .bd-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border)}
   .breakdown .bd-row:last-child{border-bottom:none}
@@ -411,8 +413,10 @@ let apptSelected = new Set();
 let calMonth = { y: _now.getFullYear(), m: _now.getMonth() };
 let calSelectedDate = null;
 
-let histFilterType = 'all';      // all | income | expense
-let histFilterExtra = 'all';     // all | Μετρητά | Κάρτα | Τράπεζα | vat | receipt | invoice
+let histFilterType = 'all';      // Άξονας 1: all | income | expense
+let histFilterPay = 'all';       // Άξονας 2: all | Μετρητά | Κάρτα | Τράπεζα
+let histFilterDoc = 'all';       // Άξονας 3: all | receipt | invoice | none
+let histFilterVat = false;       // Άξονας 4: toggle ΦΠΑ (cross-cutting με όλα τα παραπάνω)
 let histSelectMode = false;
 let histSelected = new Set();
 let openMonths = null;           // Set με ανοιχτούς μήνες (null = default: μόνο ο πιο πρόσφατος)
@@ -565,12 +569,11 @@ function deleteTx(id){
 
 /* ================= ΙΣΤΟΡΙΚΟ ================= */
 function histMatches(t){
-  if(histFilterType!=='all' && t.type!==histFilterType) return false;
-  if(histFilterExtra==='all') return true;
-  if(histFilterExtra==='vat') return !!t.vat;
-  if(histFilterExtra==='receipt') return t.doc==='receipt';
-  if(histFilterExtra==='invoice') return t.doc==='invoice';
-  return t.payment===histFilterExtra; // Μετρητά/Κάρτα/Τράπεζα
+  if(histFilterType!=='all' && t.type!==histFilterType) return false;        // Άξονας 1: τύπος
+  if(histFilterPay!=='all' && t.payment!==histFilterPay) return false;       // Άξονας 2: τρόπος πληρωμής
+  if(histFilterDoc!=='all' && (t.doc||'none')!==histFilterDoc) return false; // Άξονας 3: παραστατικό
+  if(histFilterVat && !t.vat) return false;                                  // Άξονας 4: ΦΠΑ toggle
+  return true;
 }
 function renderHistory(){
   const filtered = transactions.filter(histMatches).sort((a,b)=> new Date(b.date)-new Date(a.date));
@@ -581,9 +584,16 @@ function renderHistory(){
       ${[['all','Όλα'],['income','Έσοδα'],['expense','Έξοδα']].map(([v,l])=>
         `<button class="${histFilterType===v?'active':''}" onclick="setHistType('${v}')">${l}</button>`).join('')}
     </div>
+    <div class="filterbar">
+      ${[['all','Όλοι'],['Μετρητά','Μετρητά'],['Κάρτα','Κάρτα'],['Τράπεζα','Τράπεζα']].map(([v,l])=>
+        `<button class="${histFilterPay===v?'active':''}" onclick="setHistPay('${v}')">${l}</button>`).join('')}
+    </div>
+    <div class="filterbar">
+      ${[['all','Όλα'],['receipt','Απόδειξη'],['invoice','Τιμολόγιο'],['none','Κανένα']].map(([v,l])=>
+        `<button class="${histFilterDoc===v?'active':''}" onclick="setHistDoc('${v}')">${l}</button>`).join('')}
+    </div>
     <div class="filterbar" style="margin-bottom:0">
-      ${[['all','Όλα'],['Μετρητά','Μετρητά'],['Κάρτα','Κάρτα'],['Τράπεζα','Τράπεζα'],['vat','ΦΠΑ'],['receipt','Απόδειξη'],['invoice','Τιμολόγιο']].map(([v,l])=>
-        `<button class="${histFilterExtra===v?'active':''}" onclick="setHistExtra('${v}')">${l}</button>`).join('')}
+      <button class="${histFilterVat?'active':''}" onclick="toggleHistVat()">Μόνο ΦΠΑ ${histFilterVat?'✓':''}</button>
     </div>
     <div class="row" style="margin-top:10px">
       ${histSelectMode
@@ -639,7 +649,9 @@ function renderHistory(){
   return filterBar + cards;
 }
 function setHistType(v){ histFilterType=v; render(); }
-function setHistExtra(v){ histFilterExtra=v; render(); }
+function setHistPay(v){ histFilterPay=v; render(); }
+function setHistDoc(v){ histFilterDoc=v; render(); }
+function toggleHistVat(){ histFilterVat=!histFilterVat; render(); }
 function toggleMonth(mk){
   if(openMonths.has(mk)) openMonths.delete(mk); else openMonths.add(mk);
   render();
@@ -1111,7 +1123,7 @@ function renderStats(){
       <div class="stat" style="background:${vatBg}">
         <p class="l" style="color:${vatColor}">${vatLabel}</p>
         <p class="v" style="color:${vatColor}">${fmtMoney(vatShown)}</p>
-        ${(!vatIsCredit && vatRemaining>0) ? `<button class="edit" style="font-size:11px;color:${vatColor};font-weight:700" onclick="toggleVatPay()">Πληρωμή →</button>` : ''}
+        ${(!vatIsCredit && vatRemaining>0) ? `<button class="paybtn" style="color:${vatColor}" onclick="toggleVatPay()">Πληρωμή →</button>` : ''}
       </div>
       <div class="stat tappable" style="background:var(--warning-light)" onclick="toggleStatPanel('pendinginv')"><p class="l" style="color:var(--warning)">Εκκρεμή τιμ. (συνολικά)</p><p class="v" style="color:var(--warning)">${pendingInvoices.length}</p></div>
     </div>
