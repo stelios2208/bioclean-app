@@ -143,7 +143,30 @@
   #shareBox.open{display:flex}
   #shareBox .inner{background:var(--surface);border-radius:14px;padding:18px;max-width:420px;width:100%;max-height:80vh;overflow:auto}
   #shareBox textarea{width:100%;height:220px;font-family:monospace;font-size:12px;border:1px solid var(--border);border-radius:10px;padding:10px}
+  /* --- Auth / cloud sync (πρόσθετο, δεν επηρεάζει την υπάρχουσα λογική) --- */
+  .auth-btn{background:none;border:none;padding:6px;margin-left:6px;color:var(--accent);
+    display:flex;align-items:center;position:relative}
+  .auth-btn:active{transform:scale(.93)}
+  .auth-btn .dot{position:absolute;right:2px;bottom:2px;width:9px;height:9px;border-radius:50%;
+    border:2px solid var(--surface);background:var(--text-muted)}
+  .auth-btn.on .dot{background:var(--success)}
+  .auth-btn.syncing .dot{background:var(--warning)}
+  .auth-btn.err .dot{background:var(--danger)}
+  #authBox{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:25;padding:20px}
+  #authBox.open{display:flex}
+  #authBox .inner{background:var(--surface);border-radius:14px;padding:18px;max-width:380px;width:100%}
+  #authBox input[type=email],#authBox input[type=password]{
+    width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;
+    font-size:15px;background:#fff;color:var(--text);margin-bottom:12px}
+  #authBox input:focus{outline:none;border-color:var(--accent)}
+  #authBox h2{margin:0 0 14px}
+  #authMsg{font-size:13px;margin:0 0 12px;min-height:16px}
+  #authMsg.err{color:var(--danger)}
+  #authMsg.ok{color:var(--success)}
+  #authWho{font-size:14px;font-weight:600;margin:0 0 4px;word-break:break-all}
+  #authSyncStatus{font-size:12px;color:var(--text-2);margin:0 0 14px}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -177,6 +200,12 @@
         <circle cx="12" cy="16.5" r=".6" fill="currentColor" stroke="none"/>
         <circle cx="15.5" cy="16.5" r=".6" fill="currentColor" stroke="none"/>
       </svg>
+    </button>
+    <button class="auth-btn" id="authBtn" onclick="openAuth()" aria-label="Λογαριασμός / Συγχρονισμός">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6.5 18.5a4 4 0 0 1-.6-7.96 5.5 5.5 0 0 1 10.72-1.3A3.75 3.75 0 0 1 17.5 18.5H6.5z"/>
+      </svg>
+      <span class="dot"></span>
     </button>
   </div>
 </header>
@@ -230,6 +259,32 @@
     <div class="row" style="margin-top:10px">
       <button class="block" onclick="copyShare()">Αντιγραφή</button>
       <button class="primary block" onclick="closeShare()">Κλείσιμο</button>
+    </div>
+  </div>
+</div>
+
+<div id="authBox" onclick="if(event.target===this)closeAuth()">
+  <div class="inner">
+    <div id="authViewOut">
+      <h2>Σύνδεση / Εγγραφή</h2>
+      <input id="authEmail" type="email" autocomplete="email" placeholder="Email" inputmode="email">
+      <input id="authPass" type="password" autocomplete="current-password" placeholder="Κωδικός">
+      <div id="authMsg"></div>
+      <div class="row">
+        <button class="block" onclick="doSignup()">Εγγραφή</button>
+        <button class="primary block" onclick="doLogin()">Σύνδεση</button>
+      </div>
+      <button class="ghost block" style="margin-top:10px" onclick="closeAuth()">Άκυρο</button>
+    </div>
+    <div id="authViewIn" style="display:none">
+      <h2>Λογαριασμός</h2>
+      <p id="authWho"></p>
+      <p id="authSyncStatus"></p>
+      <div class="row">
+        <button class="block" onclick="doSyncNow()">Συγχρονισμός τώρα</button>
+        <button class="primary block" onclick="doLogout()">Αποσύνδεση</button>
+      </div>
+      <button class="ghost block" style="margin-top:10px" onclick="closeAuth()">Κλείσιμο</button>
     </div>
   </div>
 </div>
@@ -1508,6 +1563,232 @@ function calcClear(){
 repairLegacyFixed();
 materializeFixed();
 render();
+
+/* =========================================================================
+   CLOUD SYNC (Supabase) — ΠΡΟΣΘΕΤΟ layer.
+   Δεν αλλάζει καμία υπάρχουσα λογική: τα renderX(), τα localStorage keys (K.*)
+   και η persist() μένουν ίδια. Απλά "τυλίγουμε" την persist() για να ανεβάζει
+   ένα snapshot στο cloud, και κατεβάζουμε το snapshot όταν ο χρήστης συνδεθεί.
+
+   Μοντέλο: login προαιρετικό. Χωρίς σύνδεση η εφαρμογή δουλεύει 100% τοπικά
+   όπως πάντα. Με σύνδεση: backup + συγχρονισμός μεταξύ συσκευών (last-write-wins
+   σε επίπεδο ολόκληρου snapshot).
+
+   --- ΑΠΑΙΤΕΙΤΑΙ setup στο Supabase (τρέξε μία φορά στον SQL editor): -----------
+     create table if not exists public.user_data (
+       user_id uuid primary key references auth.users(id) on delete cascade,
+       data jsonb not null,
+       updated_at timestamptz not null default now()
+     );
+     alter table public.user_data enable row level security;
+     create policy "own row select" on public.user_data
+       for select using (auth.uid() = user_id);
+     create policy "own row insert" on public.user_data
+       for insert with check (auth.uid() = user_id);
+     create policy "own row update" on public.user_data
+       for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+   ---------------------------------------------------------------------------- */
+const SUPABASE_URL = 'https://ubeuqrmgemcpexqbtkzd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViZXVxcm1nZW1jcGV4cWJ0a3pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyMjUyNDIsImV4cCI6MjA5OTgwMTI0Mn0.VrwPv-ntGoa9p-DZghWjIe1QvMTFCTmuMQ2QE_0pDTw';
+
+// Αν το CDN δεν φόρτωσε (π.χ. offline) το sb μένει null και όλα υποβαθμίζονται
+// ομαλά — η εφαρμογή συνεχίζει τοπικά.
+const sb = (window.supabase && window.supabase.createClient)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+let sbUser = null;
+const SYNC_TABLE = 'user_data';
+const LAST_SYNC_KEY = 'bpc_last_sync'; // ξεχωριστό από τα K.* — η persist() δεν το αγγίζει
+
+/* --- Snapshot: όλα τα δεδομένα της εφαρμογής σε ένα object (τα ίδια keys) --- */
+function cloudSnapshot(){
+  return {
+    [K.tx]: transactions,
+    [K.fixed]: fixedExpenses,
+    [K.appt]: appointments,
+    [K.settings]: settings,
+    [K.transfers]: transfers,
+    [K.adjust]: adjustments
+  };
+}
+
+/* --- Εφαρμογή remote snapshot στο localStorage (μετά γίνεται reload ώστε να
+       ξανατρέξουν σωστά migrations/materializeFixed με τα φρέσκα δεδομένα). --- */
+function cloudApply(data){
+  if(!data || typeof data !== 'object') return false;
+  [K.tx, K.fixed, K.appt, K.settings, K.transfers, K.adjust].forEach(key=>{
+    if(key in data && data[key] !== undefined && data[key] !== null){
+      localStorage.setItem(key, JSON.stringify(data[key]));
+    }
+  });
+  return true;
+}
+
+/* --- Ένδειξη κατάστασης στο κουμπί (dot) --- */
+function setSyncBadge(state){ // 'off' | 'on' | 'syncing' | 'err'
+  const btn = document.getElementById('authBtn');
+  if(!btn) return;
+  btn.classList.remove('on','syncing','err');
+  if(state && state !== 'off') btn.classList.add(state);
+}
+
+/* --- Ανέβασμα (debounced ώστε πολλές αλλαγές = ένα request) --- */
+let _pushTimer = null;
+function cloudPushDebounced(){
+  if(!sb || !sbUser) return;
+  clearTimeout(_pushTimer);
+  _pushTimer = setTimeout(cloudPush, 1200);
+}
+async function cloudPush(){
+  if(!sb || !sbUser) return;
+  clearTimeout(_pushTimer);
+  setSyncBadge('syncing');
+  try{
+    // Χρονοσφραγίδα συγχρονισμού (πλήρες timestamp — ΟΧΙ ημερομηνία εγγραφής,
+    // οπότε το toISOString() εδώ είναι σωστό και άσχετο με το date bug των κινήσεων).
+    const now = new Date().toISOString();
+    const { error } = await sb.from(SYNC_TABLE).upsert(
+      { user_id: sbUser.id, data: cloudSnapshot(), updated_at: now },
+      { onConflict: 'user_id' }
+    );
+    if(error) throw error;
+    localStorage.setItem(LAST_SYNC_KEY, now);
+    setSyncBadge('on');
+    updateAuthStatus();
+  }catch(e){
+    setSyncBadge('err');
+    updateAuthStatus('Σφάλμα συγχρονισμού: ' + (e.message || e));
+  }
+}
+
+/* --- Κατέβασμα + reconcile. Επιστρέφει true αν πυροδότησε reload. --- */
+async function cloudPull(){
+  if(!sb || !sbUser) return false;
+  setSyncBadge('syncing');
+  try{
+    const { data, error } = await sb.from(SYNC_TABLE)
+      .select('data, updated_at').eq('user_id', sbUser.id).maybeSingle();
+    if(error) throw error;
+    if(!data){
+      // Δεν υπάρχει cloud εγγραφή → πρώτη φορά: ανεβάζουμε τα τοπικά δεδομένα.
+      await cloudPush();
+      return false;
+    }
+    const remoteTs = data.updated_at;
+    const localTs = localStorage.getItem(LAST_SYNC_KEY);
+    if(remoteTs && remoteTs !== localTs){
+      // Το cloud έχει διαφορετική/νεότερη έκδοση → εφαρμογή και reload.
+      cloudApply(data.data);
+      localStorage.setItem(LAST_SYNC_KEY, remoteTs);
+      location.reload();
+      return true;
+    }
+    setSyncBadge('on');
+    updateAuthStatus();
+    return false;
+  }catch(e){
+    setSyncBadge('err');
+    updateAuthStatus('Σφάλμα λήψης: ' + (e.message || e));
+    return false;
+  }
+}
+
+/* --- Τυλίγουμε την persist() ώστε κάθε αποθήκευση να πυροδοτεί ανέβασμα.
+       Η αρχική persist() μένει ακέραιη· απλώς την επαυξάνουμε. --- */
+const _origPersist = persist;
+persist = function(){
+  _origPersist.apply(this, arguments);
+  cloudPushDebounced();
+};
+
+/* ================= AUTH UI ================= */
+function openAuth(){ updateAuthView(); document.getElementById('authBox').classList.add('open'); }
+function closeAuth(){ document.getElementById('authBox').classList.remove('open'); setAuthMsg(''); }
+function setAuthMsg(t, cls){
+  const el = document.getElementById('authMsg'); if(!el) return;
+  el.textContent = t || ''; el.className = cls || '';
+}
+function updateAuthView(){
+  const inV = document.getElementById('authViewIn');
+  const outV = document.getElementById('authViewOut');
+  if(!inV || !outV) return;
+  if(sbUser){
+    inV.style.display = ''; outV.style.display = 'none';
+    document.getElementById('authWho').textContent = sbUser.email || '';
+    updateAuthStatus();
+  } else {
+    inV.style.display = 'none'; outV.style.display = '';
+  }
+}
+function updateAuthStatus(msg){
+  const el = document.getElementById('authSyncStatus');
+  if(!el || !sbUser) return;
+  if(msg){ el.textContent = msg; return; }
+  const ts = localStorage.getItem(LAST_SYNC_KEY);
+  el.textContent = ts
+    ? ('Τελευταίος συγχρονισμός: ' + new Date(ts).toLocaleString('el-GR'))
+    : 'Δεν έχει γίνει συγχρονισμός ακόμη';
+}
+
+async function doLogin(){
+  if(!sb){ setAuthMsg('Η υπηρεσία σύνδεσης δεν φόρτωσε (έλεγξε το δίκτυο).', 'err'); return; }
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPass').value;
+  if(!email || !password){ setAuthMsg('Συμπλήρωσε email και κωδικό.', 'err'); return; }
+  setAuthMsg('Σύνδεση…', '');
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if(error){ setAuthMsg('Αποτυχία σύνδεσης: ' + error.message, 'err'); return; }
+  setAuthMsg('Συνδέθηκες!', 'ok');
+  // Το onAuthStateChange αναλαμβάνει sbUser + cloudPull.
+}
+async function doSignup(){
+  if(!sb){ setAuthMsg('Η υπηρεσία σύνδεσης δεν φόρτωσε (έλεγξε το δίκτυο).', 'err'); return; }
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPass').value;
+  if(!email || !password){ setAuthMsg('Συμπλήρωσε email και κωδικό.', 'err'); return; }
+  if(password.length < 6){ setAuthMsg('Ο κωδικός θέλει τουλάχιστον 6 χαρακτήρες.', 'err'); return; }
+  setAuthMsg('Δημιουργία λογαριασμού…', '');
+  const { data, error } = await sb.auth.signUp({ email, password });
+  if(error){ setAuthMsg('Αποτυχία εγγραφής: ' + error.message, 'err'); return; }
+  if(data && data.session){
+    setAuthMsg('Ο λογαριασμός δημιουργήθηκε!', 'ok');
+    // onAuthStateChange αναλαμβάνει το υπόλοιπο.
+  } else {
+    // Είναι ενεργή η επιβεβαίωση email στο Supabase.
+    setAuthMsg('Έλεγξε το email σου για να επιβεβαιώσεις τον λογαριασμό.', 'ok');
+  }
+}
+async function doLogout(){
+  if(!sb) return;
+  await sb.auth.signOut();
+  closeAuth();
+  // onAuthStateChange αναλαμβάνει το reset της κατάστασης.
+}
+async function doSyncNow(){
+  if(!sb || !sbUser){ return; }
+  const reloaded = await cloudPull();   // κατεβάζει νεότερα (κάνει reload αν χρειαστεί)
+  if(!reloaded) await cloudPush();       // αλλιώς ανεβάζει τα τοπικά
+}
+
+/* --- Παρακολούθηση κατάστασης σύνδεσης --- */
+if(sb){
+  setSyncBadge('off');
+  sb.auth.onAuthStateChange((event, session)=>{
+    sbUser = session ? session.user : null;
+    updateAuthView();
+    if(sbUser){
+      setSyncBadge('on');
+      if(event === 'INITIAL_SESSION' || event === 'SIGNED_IN'){
+        cloudPull(); // reconcile στο load / μετά τη σύνδεση
+      }
+    } else {
+      setSyncBadge('off');
+    }
+  });
+} else {
+  setSyncBadge('off');
+}
 </script>
 </body>
 </html>
