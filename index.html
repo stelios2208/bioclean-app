@@ -165,6 +165,23 @@
   #authMsg.ok{color:var(--success)}
   #authWho{font-size:14px;font-weight:600;margin:0 0 4px;word-break:break-all}
   #authSyncStatus{font-size:12px;color:var(--text-2);margin:0 0 14px}
+  /* Υποχρεωτική πύλη σύνδεσης (full-screen) */
+  #authGate{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;
+    align-items:center;justify-content:center;padding:24px}
+  #authGate .gate-inner{width:100%;max-width:340px;text-align:center}
+  #authGate .gate-brand{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:26px}
+  #authGate .gate-brand h1{font-size:20px;margin:8px 0 0}
+  #authGate .gate-brand p{font-size:12px;color:var(--text-2);margin:0}
+  #authGate h2{font-size:16px;margin:0 0 16px}
+  #authGate input{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;
+    font-size:15px;background:#fff;color:var(--text);margin-bottom:12px;text-align:left}
+  #authGate input:focus{outline:none;border-color:var(--accent)}
+  #gateMsg{font-size:13px;margin:0 0 12px;min-height:16px;text-align:left}
+  #gateMsg.err{color:var(--danger)}
+  #gateMsg.ok{color:var(--success)}
+  #gateChecking{color:var(--text-2);font-size:14px;padding:24px 0}
+  #gateError .err{color:var(--danger);font-size:14px;margin:0 0 14px}
+  body.locked{overflow:hidden}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -263,29 +280,50 @@
   </div>
 </div>
 
+<!-- Υποχρεωτική πύλη σύνδεσης: το app δεν είναι προσβάσιμο χωρίς λογαριασμό -->
+<div id="authGate">
+  <div class="gate-inner">
+    <div class="gate-brand">
+      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true" width="52" height="52">
+        <rect x="1" y="1" width="38" height="38" rx="10" fill="url(#bcpGrad2)"/>
+        <circle cx="20" cy="20" r="14" fill="#fff"/>
+        <path d="M18.5 9.5c1.6 0 2.6 1 2.6 2.4v14.4h-2.6" fill="none" stroke="#3D7E92" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M21.1 26.3h6.2" stroke="#3D7E92" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M18.5 15.6c-2.6 0-4.4 1.9-4.4 4.3" fill="none" stroke="#3D7E92" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="13.2" cy="24.6" r="2.6" fill="#3D7E92"/>
+        <defs><linearGradient id="bcpGrad2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#5D93A3"/><stop offset="1" stop-color="#7CD3EA"/>
+        </linearGradient></defs>
+      </svg>
+      <h1>Bio Clean Project</h1>
+      <p>Premium services</p>
+    </div>
+    <div id="gateChecking">Έλεγχος σύνδεσης…</div>
+    <div id="gateForm" style="display:none">
+      <h2 id="gateTitle">Σύνδεση</h2>
+      <input id="gateEmail" type="email" autocomplete="email" inputmode="email" placeholder="Email">
+      <input id="gatePass" type="password" autocomplete="current-password" placeholder="Κωδικός">
+      <div id="gateMsg"></div>
+      <button class="primary block" onclick="doLogin()">Σύνδεση</button>
+      <button class="block" style="margin-top:8px" onclick="doSignup()">Δημιουργία λογαριασμού</button>
+    </div>
+    <div id="gateError" style="display:none">
+      <p id="gateErrorMsg" class="err"></p>
+      <button class="block" onclick="location.reload()">Επανάληψη</button>
+    </div>
+  </div>
+</div>
+
 <div id="authBox" onclick="if(event.target===this)closeAuth()">
   <div class="inner">
-    <div id="authViewOut">
-      <h2>Σύνδεση / Εγγραφή</h2>
-      <input id="authEmail" type="email" autocomplete="email" placeholder="Email" inputmode="email">
-      <input id="authPass" type="password" autocomplete="current-password" placeholder="Κωδικός">
-      <div id="authMsg"></div>
-      <div class="row">
-        <button class="block" onclick="doSignup()">Εγγραφή</button>
-        <button class="primary block" onclick="doLogin()">Σύνδεση</button>
-      </div>
-      <button class="ghost block" style="margin-top:10px" onclick="closeAuth()">Άκυρο</button>
+    <h2>Λογαριασμός</h2>
+    <p id="authWho"></p>
+    <p id="authSyncStatus"></p>
+    <div class="row">
+      <button class="block" onclick="doSyncNow()">Συγχρονισμός τώρα</button>
+      <button class="primary block" onclick="doLogout()">Αποσύνδεση</button>
     </div>
-    <div id="authViewIn" style="display:none">
-      <h2>Λογαριασμός</h2>
-      <p id="authWho"></p>
-      <p id="authSyncStatus"></p>
-      <div class="row">
-        <button class="block" onclick="doSyncNow()">Συγχρονισμός τώρα</button>
-        <button class="primary block" onclick="doLogout()">Αποσύνδεση</button>
-      </div>
-      <button class="ghost block" style="margin-top:10px" onclick="closeAuth()">Κλείσιμο</button>
-    </div>
+    <button class="ghost block" style="margin-top:10px" onclick="closeAuth()">Κλείσιμο</button>
   </div>
 </div>
 
@@ -1702,25 +1740,40 @@ persist = function(){
   cloudPushDebounced();
 };
 
-/* ================= AUTH UI ================= */
-function openAuth(){ updateAuthView(); document.getElementById('authBox').classList.add('open'); }
-function closeAuth(){ document.getElementById('authBox').classList.remove('open'); setAuthMsg(''); }
-function setAuthMsg(t, cls){
-  const el = document.getElementById('authMsg'); if(!el) return;
+/* ================= ΠΥΛΗ ΣΥΝΔΕΣΗΣ (υποχρεωτική) =================
+   Το app είναι συνδρομητικό: χωρίς σύνδεση δεν υπάρχει πρόσβαση. Η πύλη
+   (#authGate) καλύπτει όλη την οθόνη μέχρι να επιβεβαιωθεί λογαριασμός. */
+function gateShow(view){ // 'checking' | 'form' | 'error'
+  const g = document.getElementById('authGate');
+  g.style.display = 'flex';
+  document.body.classList.add('locked');
+  document.getElementById('gateChecking').style.display = view==='checking' ? '' : 'none';
+  document.getElementById('gateForm').style.display     = view==='form'     ? '' : 'none';
+  document.getElementById('gateError').style.display    = view==='error'    ? '' : 'none';
+  document.getElementById('authBtn').style.display = 'none';
+}
+function gateHide(){
+  document.getElementById('authGate').style.display = 'none';
+  document.body.classList.remove('locked');
+  document.getElementById('authBtn').style.display = '';
+}
+function setGateMsg(t, cls){
+  const el = document.getElementById('gateMsg'); if(!el) return;
   el.textContent = t || ''; el.className = cls || '';
 }
-function updateAuthView(){
-  const inV = document.getElementById('authViewIn');
-  const outV = document.getElementById('authViewOut');
-  if(!inV || !outV) return;
-  if(sbUser){
-    inV.style.display = ''; outV.style.display = 'none';
-    document.getElementById('authWho').textContent = sbUser.email || '';
-    updateAuthStatus();
-  } else {
-    inV.style.display = 'none'; outV.style.display = '';
-  }
+function setGateError(t){
+  document.getElementById('gateErrorMsg').textContent = t || 'Παρουσιάστηκε σφάλμα.';
+  gateShow('error');
 }
+
+/* ================= AUTH UI (λογαριασμός, όταν είναι συνδεδεμένος) ========= */
+function openAuth(){
+  if(!sbUser) return;
+  document.getElementById('authWho').textContent = sbUser.email || '';
+  updateAuthStatus();
+  document.getElementById('authBox').classList.add('open');
+}
+function closeAuth(){ document.getElementById('authBox').classList.remove('open'); }
 function updateAuthStatus(msg){
   const el = document.getElementById('authSyncStatus');
   if(!el || !sbUser) return;
@@ -1732,38 +1785,37 @@ function updateAuthStatus(msg){
 }
 
 async function doLogin(){
-  if(!sb){ setAuthMsg('Η υπηρεσία σύνδεσης δεν φόρτωσε (έλεγξε το δίκτυο).', 'err'); return; }
-  const email = document.getElementById('authEmail').value.trim();
-  const password = document.getElementById('authPass').value;
-  if(!email || !password){ setAuthMsg('Συμπλήρωσε email και κωδικό.', 'err'); return; }
-  setAuthMsg('Σύνδεση…', '');
+  if(!sb){ setGateMsg('Η υπηρεσία σύνδεσης δεν φόρτωσε (έλεγξε το δίκτυο).', 'err'); return; }
+  const email = document.getElementById('gateEmail').value.trim();
+  const password = document.getElementById('gatePass').value;
+  if(!email || !password){ setGateMsg('Συμπλήρωσε email και κωδικό.', 'err'); return; }
+  setGateMsg('Σύνδεση…', '');
   const { error } = await sb.auth.signInWithPassword({ email, password });
-  if(error){ setAuthMsg('Αποτυχία σύνδεσης: ' + error.message, 'err'); return; }
-  setAuthMsg('Συνδέθηκες!', 'ok');
-  // Το onAuthStateChange αναλαμβάνει sbUser + cloudPull.
+  if(error){ setGateMsg('Αποτυχία σύνδεσης: ' + error.message, 'err'); return; }
+  // Το onAuthStateChange αναλαμβάνει sbUser + cloudPull + άνοιγμα του app.
 }
 async function doSignup(){
-  if(!sb){ setAuthMsg('Η υπηρεσία σύνδεσης δεν φόρτωσε (έλεγξε το δίκτυο).', 'err'); return; }
-  const email = document.getElementById('authEmail').value.trim();
-  const password = document.getElementById('authPass').value;
-  if(!email || !password){ setAuthMsg('Συμπλήρωσε email και κωδικό.', 'err'); return; }
-  if(password.length < 6){ setAuthMsg('Ο κωδικός θέλει τουλάχιστον 6 χαρακτήρες.', 'err'); return; }
-  setAuthMsg('Δημιουργία λογαριασμού…', '');
+  if(!sb){ setGateMsg('Η υπηρεσία σύνδεσης δεν φόρτωσε (έλεγξε το δίκτυο).', 'err'); return; }
+  const email = document.getElementById('gateEmail').value.trim();
+  const password = document.getElementById('gatePass').value;
+  if(!email || !password){ setGateMsg('Συμπλήρωσε email και κωδικό.', 'err'); return; }
+  if(password.length < 6){ setGateMsg('Ο κωδικός θέλει τουλάχιστον 6 χαρακτήρες.', 'err'); return; }
+  setGateMsg('Δημιουργία λογαριασμού…', '');
   const { data, error } = await sb.auth.signUp({ email, password });
-  if(error){ setAuthMsg('Αποτυχία εγγραφής: ' + error.message, 'err'); return; }
+  if(error){ setGateMsg('Αποτυχία εγγραφής: ' + error.message, 'err'); return; }
   if(data && data.session){
-    setAuthMsg('Ο λογαριασμός δημιουργήθηκε!', 'ok');
+    setGateMsg('Ο λογαριασμός δημιουργήθηκε!', 'ok');
     // onAuthStateChange αναλαμβάνει το υπόλοιπο.
   } else {
     // Είναι ενεργή η επιβεβαίωση email στο Supabase.
-    setAuthMsg('Έλεγξε το email σου για να επιβεβαιώσεις τον λογαριασμό.', 'ok');
+    setGateMsg('Έλεγξε το email σου για να επιβεβαιώσεις τον λογαριασμό και ξανασυνδέσου.', 'ok');
   }
 }
 async function doLogout(){
   if(!sb) return;
-  await sb.auth.signOut();
   closeAuth();
-  // onAuthStateChange αναλαμβάνει το reset της κατάστασης.
+  await sb.auth.signOut();
+  // onAuthStateChange αναλαμβάνει το κλείδωμα (gate).
 }
 async function doSyncNow(){
   if(!sb || !sbUser){ return; }
@@ -1771,23 +1823,30 @@ async function doSyncNow(){
   if(!reloaded) await cloudPush();       // αλλιώς ανεβάζει τα τοπικά
 }
 
-/* --- Παρακολούθηση κατάστασης σύνδεσης --- */
+/* --- Παρακολούθηση κατάστασης σύνδεσης + κλείδωμα/ξεκλείδωμα app --- */
 if(sb){
+  gateShow('checking');
   setSyncBadge('off');
-  sb.auth.onAuthStateChange((event, session)=>{
+  sb.auth.onAuthStateChange(async (event, session)=>{
     sbUser = session ? session.user : null;
-    updateAuthView();
     if(sbUser){
       setSyncBadge('on');
       if(event === 'INITIAL_SESSION' || event === 'SIGNED_IN'){
-        cloudPull(); // reconcile στο load / μετά τη σύνδεση
+        // Cloud = source of truth: πρώτα φέρνουμε/συμφιλιώνουμε, μετά ανοίγουμε.
+        gateShow('checking');
+        const reloaded = await cloudPull();
+        if(reloaded) return; // η σελίδα κάνει reload με τα δεδομένα του cloud
       }
+      gateHide();
     } else {
       setSyncBadge('off');
+      gateShow('form');
     }
   });
 } else {
+  // Χωρίς Supabase client (π.χ. το CDN δεν φόρτωσε) δεν επιτρέπεται πρόσβαση.
   setSyncBadge('off');
+  setGateError('Δεν ήταν δυνατή η φόρτωση της υπηρεσίας σύνδεσης. Έλεγξε τη σύνδεσή σου στο διαδίκτυο και δοκίμασε ξανά.');
 }
 </script>
 </body>
