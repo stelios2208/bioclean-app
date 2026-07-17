@@ -306,6 +306,13 @@
       <div id="gateMsg"></div>
       <button class="primary block" onclick="doLogin()">Σύνδεση</button>
       <button class="block" style="margin-top:8px" onclick="doSignup()">Δημιουργία λογαριασμού</button>
+      <button class="ghost block" style="margin-top:6px;font-size:13px" onclick="doForgot()">Ξέχασες τον κωδικό;</button>
+    </div>
+    <div id="gateNewPass" style="display:none">
+      <h2>Ορισμός νέου κωδικού</h2>
+      <input id="gateNewPassVal" type="password" autocomplete="new-password" placeholder="Νέος κωδικός (≥6 χαρακτήρες)">
+      <div id="gateNewMsg"></div>
+      <button class="primary block" onclick="doUpdatePassword()">Αποθήκευση κωδικού</button>
     </div>
     <div id="gateError" style="display:none">
       <p id="gateErrorMsg" class="err"></p>
@@ -1743,14 +1750,28 @@ persist = function(){
 /* ================= ΠΥΛΗ ΣΥΝΔΕΣΗΣ (υποχρεωτική) =================
    Το app είναι συνδρομητικό: χωρίς σύνδεση δεν υπάρχει πρόσβαση. Η πύλη
    (#authGate) καλύπτει όλη την οθόνη μέχρι να επιβεβαιωθεί λογαριασμός. */
-function gateShow(view){ // 'checking' | 'form' | 'error'
+function gateShow(view){ // 'checking' | 'form' | 'newpass' | 'error'
   const g = document.getElementById('authGate');
   g.style.display = 'flex';
   document.body.classList.add('locked');
   document.getElementById('gateChecking').style.display = view==='checking' ? '' : 'none';
   document.getElementById('gateForm').style.display     = view==='form'     ? '' : 'none';
+  document.getElementById('gateNewPass').style.display  = view==='newpass'  ? '' : 'none';
   document.getElementById('gateError').style.display    = view==='error'    ? '' : 'none';
   document.getElementById('authBtn').style.display = 'none';
+}
+function setGateNewMsg(t, cls){
+  const el = document.getElementById('gateNewMsg'); if(!el) return;
+  el.textContent = t || ''; el.className = cls || '';
+}
+/* Μετάφραση συνηθισμένων μηνυμάτων σφάλματος του Supabase στα ελληνικά */
+function authErrorGr(msg){
+  const m = String(msg || '');
+  if(/invalid login credentials/i.test(m)) return 'Λάθος email ή κωδικός.';
+  if(/email not confirmed/i.test(m)) return 'Το email δεν έχει επιβεβαιωθεί. Έλεγξε τα εισερχόμενά σου (ή απενεργοποίησε το «Confirm email» στο Supabase).';
+  if(/user already registered|already registered/i.test(m)) return 'Υπάρχει ήδη λογαριασμός με αυτό το email — κάνε Σύνδεση.';
+  if(/rate limit|too many requests/i.test(m)) return 'Πολλές προσπάθειες. Περίμενε λίγο και δοκίμασε ξανά.';
+  return m;
 }
 function gateHide(){
   document.getElementById('authGate').style.display = 'none';
@@ -1791,7 +1812,7 @@ async function doLogin(){
   if(!email || !password){ setGateMsg('Συμπλήρωσε email και κωδικό.', 'err'); return; }
   setGateMsg('Σύνδεση…', '');
   const { error } = await sb.auth.signInWithPassword({ email, password });
-  if(error){ setGateMsg('Αποτυχία σύνδεσης: ' + error.message, 'err'); return; }
+  if(error){ setGateMsg(authErrorGr(error.message), 'err'); return; }
   // Το onAuthStateChange αναλαμβάνει sbUser + cloudPull + άνοιγμα του app.
 }
 async function doSignup(){
@@ -1802,7 +1823,7 @@ async function doSignup(){
   if(password.length < 6){ setGateMsg('Ο κωδικός θέλει τουλάχιστον 6 χαρακτήρες.', 'err'); return; }
   setGateMsg('Δημιουργία λογαριασμού…', '');
   const { data, error } = await sb.auth.signUp({ email, password });
-  if(error){ setGateMsg('Αποτυχία εγγραφής: ' + error.message, 'err'); return; }
+  if(error){ setGateMsg(authErrorGr(error.message), 'err'); return; }
   if(data && data.session){
     setGateMsg('Ο λογαριασμός δημιουργήθηκε!', 'ok');
     // onAuthStateChange αναλαμβάνει το υπόλοιπο.
@@ -1810,6 +1831,29 @@ async function doSignup(){
     // Είναι ενεργή η επιβεβαίωση email στο Supabase.
     setGateMsg('Έλεγξε το email σου για να επιβεβαιώσεις τον λογαριασμό και ξανασυνδέσου.', 'ok');
   }
+}
+/* --- Επαναφορά κωδικού: στέλνει σύνδεσμο στο email --- */
+async function doForgot(){
+  if(!sb){ setGateMsg('Η υπηρεσία σύνδεσης δεν φόρτωσε (έλεγξε το δίκτυο).', 'err'); return; }
+  const email = document.getElementById('gateEmail').value.trim();
+  if(!email){ setGateMsg('Γράψε πρώτα το email σου, μετά πάτα «Ξέχασες τον κωδικό;».', 'err'); return; }
+  setGateMsg('Αποστολή συνδέσμου…', '');
+  const redirectTo = window.location.origin + window.location.pathname;
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+  if(error){ setGateMsg(authErrorGr(error.message), 'err'); return; }
+  setGateMsg('Αν υπάρχει λογαριασμός με αυτό το email, στάλθηκε σύνδεσμος επαναφοράς. Έλεγξε εισερχόμενα και spam.', 'ok');
+}
+/* --- Ορισμός νέου κωδικού (μετά το κλικ στον σύνδεσμο επαναφοράς) --- */
+async function doUpdatePassword(){
+  if(!sb){ return; }
+  const pass = document.getElementById('gateNewPassVal').value;
+  if(!pass || pass.length < 6){ setGateNewMsg('Ο κωδικός θέλει τουλάχιστον 6 χαρακτήρες.', 'err'); return; }
+  setGateNewMsg('Αποθήκευση…', '');
+  const { error } = await sb.auth.updateUser({ password: pass });
+  if(error){ setGateNewMsg(authErrorGr(error.message), 'err'); return; }
+  setGateNewMsg('Ο κωδικός άλλαξε! Σε συνδέουμε…', 'ok');
+  const reloaded = await cloudPull();  // cloud = source of truth
+  if(!reloaded) gateHide();
 }
 async function doLogout(){
   if(!sb) return;
@@ -1829,6 +1873,11 @@ if(sb){
   setSyncBadge('off');
   sb.auth.onAuthStateChange(async (event, session)=>{
     sbUser = session ? session.user : null;
+    if(event === 'PASSWORD_RECOVERY'){
+      // Ο χρήστης ήρθε από σύνδεσμο επαναφοράς: ζητάμε νέο κωδικό (όχι άνοιγμα app).
+      gateShow('newpass');
+      return;
+    }
     if(sbUser){
       setSyncBadge('on');
       if(event === 'INITIAL_SESSION' || event === 'SIGNED_IN'){
